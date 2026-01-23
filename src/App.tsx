@@ -1,147 +1,329 @@
-import { FormEvent, useState } from "react";
+import { useEffect, useState } from "react";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import "./App.css";
+import { HistorySidebar } from "./components/HistorySidebar";
+import { RequestPane } from "./components/RequestPane";
+import { ResponsePane } from "./components/ResponsePane";
+import {
+  HttpMethod,
+  RequestData,
+  ResponseData,
+  RequestHistoryItem,
+  AuthConfig,
+} from "./types";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD";
+const HISTORY_STORAGE_KEY = "kordix_request_history";
+const MAX_HISTORY_ITEMS = 100;
 
 function App() {
-  const [url, setUrl] = useState(
-    "https://jsonplaceholder.typicode.com/todos/1",
-  );
+  useEffect(() => {
+    // Force dark theme globally while the app is mounted
+    document.documentElement.classList.add("dark");
+    return () => {
+      document.documentElement.classList.remove("dark");
+    };
+  }, []);
+
   const [method, setMethod] = useState<HttpMethod>("GET");
+  const [url, setUrl] = useState("https://jsonplaceholder.typicode.com/todos/1");
+  const [headers, setHeaders] = useState<Record<string, string>>({});
+  const [params, setParams] = useState<Record<string, string>>({});
   const [body, setBody] = useState("");
+  const [auth, setAuth] = useState<AuthConfig>({ type: "None" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
-  const [responseText, setResponseText] = useState<string | null>(null);
+  const [response, setResponse] = useState<ResponseData | null>(null);
+  const [history, setHistory] = useState<RequestHistoryItem[]>([]);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(
+    null
+  );
 
-  const canHaveBody = method !== "GET" && method !== "HEAD";
+  // Load history from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as RequestHistoryItem[];
+        setHistory(parsed);
+      }
+    } catch (err) {
+      console.error("Failed to load history from localStorage", err);
+    }
+  }, []);
 
-  async function sendRequest(e: FormEvent) {
-    e.preventDefault();
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+    } catch (err) {
+      console.error("Failed to save history to localStorage", err);
+    }
+  }, [history]);
+
+  const buildUrlWithParams = (baseUrl: string): string => {
+    if (Object.keys(params).length === 0) return baseUrl;
+    try {
+      const urlObj = new URL(baseUrl);
+      Object.entries(params).forEach(([key, value]) => {
+        if (key && value) {
+          urlObj.searchParams.set(key, value);
+        }
+      });
+      return urlObj.toString();
+    } catch {
+      return baseUrl;
+    }
+  };
+
+  const buildAuthHeaders = (authConfig: AuthConfig): Record<string, string> => {
+    const authHeaders: Record<string, string> = {};
+    if (authConfig.type === "Basic" && authConfig.username && authConfig.password) {
+      const credentials = btoa(`${authConfig.username}:${authConfig.password}`);
+      authHeaders["Authorization"] = `Basic ${credentials}`;
+    } else if (authConfig.type === "Bearer" && authConfig.token) {
+      authHeaders["Authorization"] = `Bearer ${authConfig.token}`;
+    } else if (
+      authConfig.type === "Custom" &&
+      authConfig.headerName &&
+      authConfig.headerValue
+    ) {
+      authHeaders[authConfig.headerName] = authConfig.headerValue;
+    }
+    return authHeaders;
+  };
+
+  async function sendRequest() {
     setLoading(true);
     setError(null);
-    setStatus(null);
-    setResponseText(null);
+    setResponse(null);
+    setSelectedHistoryId(null);
+
+    const startTime = performance.now();
 
     try {
-      const init: RequestInit = { method };
-
-      if (canHaveBody && body.trim()) {
-        init.body = body;
-        init.headers = {
-          "Content-Type": "application/json",
-        };
-      }
-
-      const res = await fetch(url, init);
-      setStatus(`${res.status} ${res.statusText}`);
-
-      const text = await res.text();
-      let pretty = text;
-
+      // Validate URL format before making the request
+      let requestUrl: string;
       try {
-        const json = JSON.parse(text);
-        pretty = JSON.stringify(json, null, 2);
+        requestUrl = buildUrlWithParams(url);
+        new URL(requestUrl);
       } catch {
-        // response is not JSON, show raw text
+        setError(
+          "Invalid URL format. Please enter a valid URL (e.g., https://example.com)"
+        );
+        setLoading(false);
+        return;
       }
 
-      setResponseText(pretty);
+      const authHeaders = buildAuthHeaders(auth);
+      const allHeaders = { ...headers, ...authHeaders };
+
+      const options: {
+        method: string;
+        headers?: Record<string, string>;
+        body?: string;
+      } = { method };
+
+      if (Object.keys(allHeaders).length > 0) {
+        options.headers = allHeaders;
+      }
+
+      const canHaveBody = method !== "GET" && method !== "HEAD";
+      if (canHaveBody && body.trim()) {
+        options.body = body;
+        if (!options.headers) {
+          options.headers = {};
+        }
+        if (!options.headers["Content-Type"]) {
+          options.headers["Content-Type"] = "application/json";
+        }
+      }
+
+      const res = await tauriFetch(requestUrl, options);
+      const endTime = performance.now();
+      const timing = endTime - startTime;
+
+      const contentType = res.headers.get("content-type") ?? "";
+      const text = await res.text();
+      const responseSize = new Blob([text]).size;
+
+      // Convert response headers to object
+      const responseHeaders: Record<string, string> = {};
+      res.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+
+      // Format response body
+      let formattedBody = text;
+      if (contentType.includes("application/json")) {
+        try {
+          const json = text ? JSON.parse(text) : null;
+          formattedBody =
+            json !== null ? JSON.stringify(json, null, 2) : "(empty JSON)";
+        } catch {
+          formattedBody = text || "(empty response)";
+        }
+      } else {
+        formattedBody = text || "(empty response)";
+      }
+
+      const responseData: ResponseData = {
+        status: res.status,
+        statusText: res.statusText,
+        headers: responseHeaders,
+        body: formattedBody,
+        timing,
+        size: responseSize,
+      };
+
+      setResponse(responseData);
+
+      // Save to history
+      const requestData: RequestData = {
+        method,
+        url,
+        headers,
+        params,
+        body,
+        auth,
+      };
+
+      const historyItem: RequestHistoryItem = {
+        id: `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        method,
+        url,
+        timestamp: Date.now(),
+        status: res.status,
+        statusText: res.statusText,
+        requestData,
+        responseData,
+      };
+
+      setHistory((prev) => {
+        const updated = [historyItem, ...prev];
+        // Limit to MAX_HISTORY_ITEMS
+        return updated.slice(0, MAX_HISTORY_ITEMS);
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      let errorMessage = "Unknown error";
+
+      if (err instanceof Error) {
+        const message = err.message.toLowerCase();
+
+        // Check for DNS/domain resolution errors
+        if (
+          message.includes("failed to resolve") ||
+          message.includes("name resolution") ||
+          message.includes("dns") ||
+          message.includes("not found") ||
+          message.includes("no such host") ||
+          message.includes("cannot resolve")
+        ) {
+          errorMessage = `Domain not found: Unable to resolve the domain name. Please check if the URL is correct.`;
+        }
+        // Check for invalid URL errors
+        else if (
+          message.includes("invalid url") ||
+          message.includes("invalid uri") ||
+          message.includes("parse error")
+        ) {
+          errorMessage = `Invalid URL: The URL format is incorrect. Please check the URL and try again.`;
+        }
+        // Check for connection errors
+        else if (
+          message.includes("connection") ||
+          message.includes("timeout") ||
+          message.includes("network")
+        ) {
+          errorMessage = `Connection error: ${err.message}`;
+        }
+        // Check for SSL/TLS errors
+        else if (
+          message.includes("ssl") ||
+          message.includes("tls") ||
+          message.includes("certificate")
+        ) {
+          errorMessage = `SSL/TLS error: ${err.message}`;
+        }
+        // Use the original error message if it's descriptive
+        else if (err.message && err.message.trim() !== "") {
+          errorMessage = err.message;
+        }
+      } else if (typeof err === "string") {
+        errorMessage = err;
+      }
+
+      setError(errorMessage);
+
+      // Save failed request to history (timing captured but not used for failed requests)
+      const requestData: RequestData = {
+        method,
+        url,
+        headers,
+        params,
+        body,
+        auth,
+      };
+
+      const historyItem: RequestHistoryItem = {
+        id: `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        method,
+        url,
+        timestamp: Date.now(),
+        status: null,
+        statusText: null,
+        requestData,
+        responseData: null,
+      };
+
+      setHistory((prev) => {
+        const updated = [historyItem, ...prev];
+        return updated.slice(0, MAX_HISTORY_ITEMS);
+      });
     } finally {
       setLoading(false);
     }
   }
 
+  const handleHistorySelect = (item: RequestHistoryItem) => {
+    setMethod(item.requestData.method);
+    setUrl(item.requestData.url);
+    setHeaders(item.requestData.headers);
+    setParams(item.requestData.params);
+    setBody(item.requestData.body);
+    setAuth(item.requestData.auth);
+    setSelectedHistoryId(item.id);
+    if (item.responseData) {
+      setResponse(item.responseData);
+    } else {
+      setResponse(null);
+    }
+    setError(null);
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-      <div className="w-full max-w-3xl p-6 space-y-6">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Kordix</h1>
-          <p className="text-sm text-muted-foreground">
-            Minimal REST client — step 1: send a request and see the response.
-          </p>
-        </header>
-
-        <form onSubmit={sendRequest} className="space-y-4">
-          <div className="flex gap-2">
-            <select
-              value={method}
-              onChange={(e) => setMethod(e.target.value as HttpMethod)}
-              className="h-10 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"].map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-
-            <input
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://api.example.com/resource"
-              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              required
-            />
-
-            <button
-              type="submit"
-              disabled={loading || !url.trim()}
-              className="h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Sending..." : "Send"}
-            </button>
-          </div>
-
-          {canHaveBody && (
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">
-                Request body (JSON)
-              </label>
-              <textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                rows={4}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                placeholder='{"title": "New item"}'
-              />
-            </div>
-          )}
-        </form>
-
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium">Response</h2>
-            {status && (
-              <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">
-                {status}
-              </span>
-            )}
-          </div>
-          <div className="rounded-md border border-border bg-card p-3">
-            {error && (
-              <p className="text-sm text-destructive whitespace-pre-wrap">
-                {error}
-              </p>
-            )}
-
-            {!error && responseText && (
-              <pre className="text-xs whitespace-pre-wrap font-mono">
-                {responseText}
-              </pre>
-            )}
-
-            {!error && !responseText && !loading && (
-              <p className="text-xs text-muted-foreground">
-                Send a request to see the response here.
-              </p>
-            )}
-          </div>
-        </section>
-      </div>
+    <div className="h-screen bg-background text-foreground flex overflow-hidden">
+      <HistorySidebar
+        history={history}
+        selectedId={selectedHistoryId}
+        onSelect={handleHistorySelect}
+      />
+      <RequestPane
+        method={method}
+        url={url}
+        headers={headers}
+        params={params}
+        body={body}
+        auth={auth}
+        onMethodChange={setMethod}
+        onUrlChange={setUrl}
+        onHeadersChange={setHeaders}
+        onParamsChange={setParams}
+        onBodyChange={setBody}
+        onAuthChange={setAuth}
+        onSend={sendRequest}
+        loading={loading}
+      />
+      <ResponsePane response={response} error={error} loading={loading} />
     </div>
   );
 }

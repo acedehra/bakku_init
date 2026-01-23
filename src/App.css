@@ -1,15 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafb);
-}
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -234,4 +225,55 @@ button {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Three-pane layout styles */
+.h-screen {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Scrollbar styling for dark theme */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: oklch(0.205 0 0);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: oklch(0.269 0 0);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.322 0 0);
+}
+
+/* Tab styling */
+.tab-button {
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  background-color: oklch(0.269 0 0 / 0.3);
+}
+
+/* History item hover effect */
+.history-item {
+  transition: background-color 0.15s ease;
+}
+
+/* Response JSON formatting */
+.response-json {
+  line-height: 1.5;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* Ensure proper text selection */
+pre {
+  user-select: text;
+  -webkit-user-select: text;
 }
