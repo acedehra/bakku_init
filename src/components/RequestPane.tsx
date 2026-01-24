@@ -138,6 +138,12 @@ export function RequestPane({
     onParamsChange({ ...params, "": "" });
   };
 
+  const deleteParam = (key: string) => {
+    const newParams = { ...params };
+    delete newParams[key];
+    onParamsChange(newParams);
+  };
+
   const tabs: RequestTab[] = ["Body", "Params", "Headers", "Auth"];
 
   return (
@@ -207,7 +213,7 @@ export function RequestPane({
         {activeTab === "Params" && (
           <div className="space-y-2">
             {Object.entries(params).map(([key, value], index) => (
-              <div key={`param-${index}-${key}`} className="flex gap-2">
+              <div key={`param-${index}-${key}`} className="flex gap-2 items-center">
                 <input
                   ref={(el) => {
                     if (el) {
@@ -237,6 +243,11 @@ export function RequestPane({
                   onChange={(e) => updateParam(key, e.target.value)}
                   className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
+                <Button 
+                  onClick={() => deleteParam(key)}
+                  variant="outline" size="icon" aria-label="Delete param" title="Delete param">
+                  <Trash2/>
+                </Button>
               </div>
             ))}
             <button
