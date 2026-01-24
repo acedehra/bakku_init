@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { RequestData, HttpMethod, AuthType } from "../types";
 import { Trash2 } from "lucide-react";
 import {Button} from "@/components/ui/button";
@@ -39,8 +39,68 @@ export function RequestPane({
   loading,
 }: RequestPaneProps) {
   const [activeTab, setActiveTab] = useState<RequestTab>("Body");
+  const paramKeyInputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
+  const headerKeyInputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
+  const [focusedParamIndex, setFocusedParamIndex] = useState<number | null>(null);
+  const [focusedHeaderIndex, setFocusedHeaderIndex] = useState<number | null>(null);
+  const [paramCursorPos, setParamCursorPos] = useState<number | null>(null);
+  const [headerCursorPos, setHeaderCursorPos] = useState<number | null>(null);
+  const [justAddedParam, setJustAddedParam] = useState(false);
+  const [justAddedHeader, setJustAddedHeader] = useState(false);
 
   const canHaveBody = method !== "GET" && method !== "HEAD";
+
+  // Restore focus for params after state update
+  useEffect(() => {
+    if (focusedParamIndex !== null) {
+      const input = paramKeyInputRefs.current.get(focusedParamIndex);
+      if (input) {
+        input.focus();
+        if (paramCursorPos !== null) {
+          input.setSelectionRange(paramCursorPos, paramCursorPos);
+        }
+        setFocusedParamIndex(null);
+        setParamCursorPos(null);
+      }
+    } else if (justAddedParam) {
+      // Focus the first empty key input after adding a new param
+      const entries = Object.entries(params);
+      const emptyKeyIndex = entries.findIndex(([key]) => key === "");
+      if (emptyKeyIndex !== -1) {
+        const input = paramKeyInputRefs.current.get(emptyKeyIndex);
+        if (input) {
+          input.focus();
+        }
+      }
+      setJustAddedParam(false);
+    }
+  }, [params, focusedParamIndex, paramCursorPos, justAddedParam]);
+
+  // Restore focus for headers after state update
+  useEffect(() => {
+    if (focusedHeaderIndex !== null) {
+      const input = headerKeyInputRefs.current.get(focusedHeaderIndex);
+      if (input) {
+        input.focus();
+        if (headerCursorPos !== null) {
+          input.setSelectionRange(headerCursorPos, headerCursorPos);
+        }
+        setFocusedHeaderIndex(null);
+        setHeaderCursorPos(null);
+      }
+    } else if (justAddedHeader) {
+      // Focus the first empty key input after adding a new header
+      const entries = Object.entries(headers);
+      const emptyKeyIndex = entries.findIndex(([key]) => key === "");
+      if (emptyKeyIndex !== -1) {
+        const input = headerKeyInputRefs.current.get(emptyKeyIndex);
+        if (input) {
+          input.focus();
+        }
+      }
+      setJustAddedHeader(false);
+    }
+  }, [headers, focusedHeaderIndex, headerCursorPos, justAddedHeader]);
 
   const updateHeader = (key: string, value: string) => {
     const newHeaders = { ...headers };
@@ -53,8 +113,8 @@ export function RequestPane({
   };
 
   const addHeader = () => {
-    const newKey = `header-${Date.now()}`;
-    onHeadersChange({ ...headers, [newKey]: "" });
+    setJustAddedHeader(true);
+    onHeadersChange({ ...headers, "": "" });
   };
 
   const deleteHeader = (key: string) => {
@@ -74,8 +134,8 @@ export function RequestPane({
   };
 
   const addParam = () => {
-    const newKey = `param-${Date.now()}`;
-    onParamsChange({ ...params, [newKey]: "" });
+    setJustAddedParam(true);
+    onParamsChange({ ...params, "": "" });
   };
 
   const tabs: RequestTab[] = ["Body", "Params", "Headers", "Auth"];
@@ -146,16 +206,26 @@ export function RequestPane({
         )}
         {activeTab === "Params" && (
           <div className="space-y-2">
-            {Object.entries(params).map(([key, value]) => (
-              <div key={key} className="flex gap-2">
+            {Object.entries(params).map(([key, value], index) => (
+              <div key={`param-${index}-${key}`} className="flex gap-2">
                 <input
+                  ref={(el) => {
+                    if (el) {
+                      paramKeyInputRefs.current.set(index, el);
+                    }
+                  }}
                   type="text"
                   placeholder="Key"
                   value={key}
                   onChange={(e) => {
+                    const input = e.target;
+                    const cursorPos = input.selectionStart;
+                    setFocusedParamIndex(index);
+                    setParamCursorPos(cursorPos);
                     const newParams = { ...params };
                     delete newParams[key];
-                    newParams[e.target.value] = value;
+                    const newKey = e.target.value;
+                    newParams[newKey] = value;
                     onParamsChange(newParams);
                   }}
                   className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -179,16 +249,26 @@ export function RequestPane({
         )}
         {activeTab === "Headers" && (
           <div className="space-y-2">
-            {Object.entries(headers).map(([key, value]) => (
-              <div key={key} className="flex gap-2 items-center">
+            {Object.entries(headers).map(([key, value], index) => (
+              <div key={`header-${index}-${key}`} className="flex gap-2 items-center">
                 <input
+                  ref={(el) => {
+                    if (el) {
+                      headerKeyInputRefs.current.set(index, el);
+                    }
+                  }}
                   type="text"
                   placeholder="Header name"
                   value={key}
                   onChange={(e) => {
+                    const input = e.target;
+                    const cursorPos = input.selectionStart;
+                    setFocusedHeaderIndex(index);
+                    setHeaderCursorPos(cursorPos);
                     const newHeaders = { ...headers };
                     delete newHeaders[key];
-                    newHeaders[e.target.value] = value;
+                    const newKey = e.target.value;
+                    newHeaders[newKey] = value;
                     onHeadersChange(newHeaders);
                   }}
                   className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
