@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { RequestData, HttpMethod, AuthType } from "../types";
-import { Trash2 } from "lucide-react";
-import {Button} from "@/components/ui/button";
+import { Trash2, FileText, List, Settings2, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface RequestPaneProps {
   method: HttpMethod;
@@ -146,6 +146,16 @@ export function RequestPane({
 
   const tabs: RequestTab[] = ["Body", "Params", "Headers", "Auth"];
 
+  const tabIcons: Record<RequestTab, React.ReactNode> = {
+    Body: <FileText size={14} />,
+    Params: <List size={14} />,
+    Headers: <Settings2 size={14} />,
+    Auth: <ShieldCheck size={14} />,
+  };
+
+  const paramCount = Object.keys(params).filter(k => k.trim() !== "").length;
+  const headerCount = Object.keys(headers).filter(k => k.trim() !== "").length;
+
   return (
     <div className="flex-1 h-screen flex flex-col bg-background">
       <div className="p-4 border-b border-border">
@@ -153,10 +163,10 @@ export function RequestPane({
           <select
             value={method}
             onChange={(e) => onMethodChange(e.target.value as HttpMethod)}
-            className="h-10 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="h-10 rounded-md border border-input bg-background px-2 text-sm font-bold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
           >
             {["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"].map((m) => (
-              <option key={m} value={m}>
+              <option key={m} value={m} className="font-sans">
                 {m}
               </option>
             ))}
@@ -164,9 +174,14 @@ export function RequestPane({
           <input
             type="text"
             value={url}
+            onClick={() => {
+              if (url.includes('?')) {
+                setActiveTab("Params");
+              }
+            }}
             onChange={(e) => onUrlChange(e.target.value)}
             placeholder="https://api.example.com/resource"
-            className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
           />
           <button
             onClick={onSend}
@@ -177,19 +192,33 @@ export function RequestPane({
           </button>
         </div>
         <div className="flex gap-1 border-b border-border">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab;
+            const count = tab === "Params" ? paramCount : tab === "Headers" ? headerCount : 0;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex items-center gap-2 px-6 py-2.5 text-sm font-extrabold transition-all duration-300 outline-none ${isActive
+                  ? "text-primary-foreground bg-primary shadow-xl rounded-lg scale-[1.02]"
+                  : "text-muted-foreground/30 hover:text-muted-foreground/60 hover:bg-accent/10"
+                  }`}
+              >
+                <span className={`transition-opacity duration-300 ${isActive ? "opacity-100" : "opacity-30"}`}>
+                  {tabIcons[tab]}
+                </span>
+                <span className={`transition-all duration-300 ${isActive ? "opacity-100" : "opacity-30"}`}>
+                  {tab}
+                </span>
+                {count > 0 && (
+                  <span className={`inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 text-[10px] font-bold rounded-full transition-all ${isActive ? "bg-primary-foreground text-primary shadow-sm" : "bg-muted/20 text-muted-foreground/20"
+                    }`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
@@ -213,7 +242,7 @@ export function RequestPane({
         {activeTab === "Params" && (
           <div className="space-y-2">
             {Object.entries(params).map(([key, value], index) => (
-              <div key={`param-${index}-${key}`} className="flex gap-2 items-center">
+              <div key={`param-${index}-${key}`} className="flex gap-2 items-center group p-1.5 rounded-md hover:bg-accent/30 focus-within:bg-accent/40 transition-colors">
                 <input
                   ref={(el) => {
                     if (el) {
@@ -243,16 +272,16 @@ export function RequestPane({
                   onChange={(e) => updateParam(key, e.target.value)}
                   className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
-                <Button 
+                <Button
                   onClick={() => deleteParam(key)}
                   variant="outline" size="icon" aria-label="Delete param" title="Delete param">
-                  <Trash2/>
+                  <Trash2 />
                 </Button>
               </div>
             ))}
             <button
               onClick={addParam}
-              className="px-4 py-2 text-sm rounded-md border border-input bg-background hover:bg-accent"
+              className="px-4 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               + Add Param
             </button>
@@ -261,7 +290,7 @@ export function RequestPane({
         {activeTab === "Headers" && (
           <div className="space-y-2">
             {Object.entries(headers).map(([key, value], index) => (
-              <div key={`header-${index}-${key}`} className="flex gap-2 items-center">
+              <div key={`header-${index}-${key}`} className="flex gap-2 items-center group p-1.5 rounded-md hover:bg-accent/30 focus-within:bg-accent/40 transition-colors">
                 <input
                   ref={(el) => {
                     if (el) {
@@ -291,18 +320,18 @@ export function RequestPane({
                   onChange={(e) => updateHeader(key, e.target.value)}
                   className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
-                
-                  <Button 
+
+                <Button
                   onClick={() => deleteHeader(key)}
                   variant="outline" size="icon" aria-label="Delete header" title="Delete header">
-                    
-                 <Trash2/>
+
+                  <Trash2 />
                 </Button>
               </div>
             ))}
             <button
               onClick={addHeader}
-              className="px-4 py-2 text-sm rounded-md border border-input bg-background hover:bg-accent"
+              className="px-4 py-2 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               + Add Header
             </button>
@@ -319,7 +348,8 @@ export function RequestPane({
                 onChange={(e) =>
                   onAuthChange({ ...auth, type: e.target.value as AuthType })
                 }
-                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={`w-full h-10 rounded-md border text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all ${auth.type !== "None" ? "border-primary/50 bg-primary/5 text-primary" : "border-input bg-background"
+                  }`}
               >
                 <option value="None">None</option>
                 <option value="Basic">Basic Auth</option>
@@ -329,7 +359,7 @@ export function RequestPane({
             </div>
             {auth.type === "Basic" && (
               <>
-                <div>
+                <div className="p-3 rounded-lg border border-border/40 focus-within:border-primary/50 focus-within:bg-primary/5 transition-all shadow-sm">
                   <label className="text-sm font-medium mb-2 block">
                     Username
                   </label>
@@ -342,7 +372,7 @@ export function RequestPane({
                     className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
-                <div>
+                <div className="p-3 rounded-lg border border-border/40 focus-within:border-primary/50 focus-within:bg-primary/5 transition-all shadow-sm">
                   <label className="text-sm font-medium mb-2 block">
                     Password
                   </label>
@@ -358,7 +388,7 @@ export function RequestPane({
               </>
             )}
             {auth.type === "Bearer" && (
-              <div>
+              <div className="p-3 rounded-lg border border-border/40 focus-within:border-primary/50 focus-within:bg-primary/5 transition-all shadow-sm">
                 <label className="text-sm font-medium mb-2 block">Token</label>
                 <input
                   type="text"
@@ -372,7 +402,7 @@ export function RequestPane({
             )}
             {auth.type === "Custom" && (
               <>
-                <div>
+                <div className="p-3 rounded-lg border border-border/40 focus-within:border-primary/50 focus-within:bg-primary/5 transition-all shadow-sm">
                   <label className="text-sm font-medium mb-2 block">
                     Header Name
                   </label>
@@ -385,7 +415,7 @@ export function RequestPane({
                     className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
-                <div>
+                <div className="p-3 rounded-lg border border-transparent focus-within:border-accent focus-within:bg-accent/10 transition-all">
                   <label className="text-sm font-medium mb-2 block">
                     Header Value
                   </label>
