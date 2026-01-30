@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { RequestData, HttpMethod, AuthType } from "../types";
-import { Trash2, FileText, List, Settings2, ShieldCheck } from "lucide-react";
+import { Trash2, FileText, List, Settings2, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface RequestPaneProps {
@@ -47,6 +47,8 @@ export function RequestPane({
   const [headerCursorPos, setHeaderCursorPos] = useState<number | null>(null);
   const [justAddedParam, setJustAddedParam] = useState(false);
   const [justAddedHeader, setJustAddedHeader] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showToken, setShowToken] = useState(false);
 
   const canHaveBody = method !== "GET" && method !== "HEAD";
 
@@ -376,28 +378,46 @@ export function RequestPane({
                   <label className="text-sm font-medium mb-2 block">
                     Password
                   </label>
-                  <input
-                    type="password"
-                    value={auth.password || ""}
-                    onChange={(e) =>
-                      onAuthChange({ ...auth, password: e.target.value })
-                    }
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={auth.password || ""}
+                      onChange={(e) =>
+                        onAuthChange({ ...auth, password: e.target.value })
+                      }
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 pr-10 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
               </>
             )}
             {auth.type === "Bearer" && (
               <div className="p-3 rounded-lg border border-border/40 focus-within:border-primary/50 focus-within:bg-primary/5 transition-all shadow-sm">
                 <label className="text-sm font-medium mb-2 block">Token</label>
-                <input
-                  type="text"
-                  value={auth.token || ""}
-                  onChange={(e) =>
-                    onAuthChange({ ...auth, token: e.target.value })
-                  }
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
+                <div className="relative">
+                  <input
+                    type={showToken ? "text" : "password"}
+                    value={auth.token || ""}
+                    onChange={(e) =>
+                      onAuthChange({ ...auth, token: e.target.value })
+                    }
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 pr-10 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowToken(!showToken)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
             )}
             {auth.type === "Custom" && (
