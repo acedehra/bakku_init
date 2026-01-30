@@ -51,7 +51,7 @@ jobs:
           tagName: ${{ github.event.inputs.version }}
           releaseName: "kordix ${{ github.event.inputs.version }}"
           releaseBody: "Manual release of kordix version ${{ github.event.inputs.version }}"
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           # Build universal binary for macOS
           args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
