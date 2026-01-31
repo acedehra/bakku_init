@@ -16,6 +16,9 @@ import { useRequestHistory } from "./hooks/useRequestHistory";
 import { useUrlParams } from "./hooks/useUrlParams";
 import { executeHttpRequest, formatError } from "./utils/httpClient";
 import { getBaseUrl, buildUrlWithParams } from "./utils/urlParser";
+import { useEnvironments } from "./hooks/useEnvironments";
+import { EnvironmentManager } from "./components/EnvironmentManager";
+
 
 function App() {
   useEffect(() => {
@@ -46,6 +49,19 @@ function App() {
     updateFromHistory
   } = useUrlParams("https://jsonplaceholder.typicode.com/todos/1");
 
+  const {
+    environments,
+    activeEnvId,
+    activeEnv,
+    setActiveEnvId,
+    addEnvironment,
+    updateEnvironment,
+    deleteEnvironment,
+  } = useEnvironments();
+
+  const [isEnvManagerOpen, setIsEnvManagerOpen] = useState(false);
+
+
   const [method, setMethod] = useState<HttpMethod>("GET");
   const [headers, setHeaders] = useState<Record<string, string>>({});
   const [body, setBody] = useState("");
@@ -62,7 +78,7 @@ function App() {
     setSelectedHistoryId(null);
 
     try {
-      const responseData = await executeHttpRequest(method, url, headers, body, auth);
+      const responseData = await executeHttpRequest(method, url, headers, body, auth, activeEnv);
       setResponse(responseData);
 
       // Save to history
@@ -166,11 +182,25 @@ function App() {
         onAuthChange={setAuth}
         onSend={sendRequest}
         loading={loading}
+        environments={environments}
+        activeEnvId={activeEnvId}
+        onActiveEnvChange={setActiveEnvId}
+        onOpenEnvManager={() => setIsEnvManagerOpen(true)}
       />
       <ResizeHandle onResize={handleResponseResize} />
       <div style={{ width: `${responseWidth}px` }} className="h-screen flex-shrink-0">
         <ResponsePane response={response} error={error} loading={loading} />
       </div>
+
+      {isEnvManagerOpen && (
+        <EnvironmentManager
+          environments={environments}
+          onAdd={addEnvironment}
+          onUpdate={updateEnvironment}
+          onDelete={deleteEnvironment}
+          onClose={() => setIsEnvManagerOpen(false)}
+        />
+      )}
     </div>
   );
 }

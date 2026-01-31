@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { RequestData, HttpMethod, AuthType } from "../types";
-import { Trash2, FileText, List, Settings2, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { RequestData, HttpMethod, AuthType, Environment } from "../types";
+import { Trash2, FileText, List, Settings2, ShieldCheck, Eye, EyeOff, Settings, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface RequestPaneProps {
@@ -18,6 +18,10 @@ interface RequestPaneProps {
   onAuthChange: (auth: RequestData["auth"]) => void;
   onSend: () => void;
   loading: boolean;
+  environments: Environment[];
+  activeEnvId: string | null;
+  onActiveEnvChange: (id: string | null) => void;
+  onOpenEnvManager: () => void;
 }
 
 type RequestTab = "Body" | "Params" | "Headers" | "Auth";
@@ -37,6 +41,10 @@ export function RequestPane({
   onAuthChange,
   onSend,
   loading,
+  environments,
+  activeEnvId,
+  onActiveEnvChange,
+  onOpenEnvManager,
 }: RequestPaneProps) {
   const [activeTab, setActiveTab] = useState<RequestTab>("Body");
   const paramKeyInputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
@@ -161,6 +169,40 @@ export function RequestPane({
   return (
     <div className="flex-1 h-screen flex flex-col bg-background">
       <div className="p-4 border-b border-border">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Request Builder</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-accent/20 border border-border/50 hover:bg-accent/30 transition-colors group">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-70 group-hover:text-primary transition-colors">Environment</span>
+              <div className="relative flex items-center h-6 min-w-[140px]">
+                <select
+                  value={activeEnvId || ""}
+                  onChange={(e) => onActiveEnvChange(e.target.value || null)}
+                  className="w-full appearance-none bg-transparent pr-5 text-xs font-bold focus:outline-none cursor-pointer text-primary"
+                >
+                  <option value="">No Environment</option>
+                  {environments.map((env) => (
+                    <option key={env.id} value={env.id}>
+                      {env.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={10} className="absolute right-0 pointer-events-none opacity-50 text-primary" />
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onOpenEnvManager}
+              className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 border-border/50 transition-all rounded-full"
+              title="Manage Environments"
+            >
+              <Settings size={14} />
+            </Button>
+          </div>
+        </div>
         <div className="flex gap-2 mb-4">
           <select
             value={method}

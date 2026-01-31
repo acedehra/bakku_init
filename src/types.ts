@@ -29,6 +29,18 @@ export interface ResponseData {
   size: number; // bytes
 }
 
+export interface EnvironmentVariable {
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  variables: EnvironmentVariable[];
+}
+
 export interface RequestHistoryItem {
   id: string;
   method: HttpMethod;

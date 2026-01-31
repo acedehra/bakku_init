@@ -1,5 +1,23 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import { AuthConfig, HttpMethod, ResponseData } from "../types";
+import { AuthConfig, HttpMethod, ResponseData, Environment } from "../types";
+
+export const substituteVariables = (
+    text: string,
+    environment: Environment | null
+): string => {
+    if (!environment || !text) return text;
+
+    let result = text;
+    environment.variables.forEach((v) => {
+        if (v.enabled && v.key) {
+            // Escape special regex characters in the key
+            const escapedKey = v.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`{{${escapedKey}}}`, "g");
+            result = result.replace(regex, v.value);
+        }
+    });
+    return result;
+};
 
 export const buildAuthHeaders = (authConfig: AuthConfig): Record<string, string> => {
     const authHeaders: Record<string, string> = {};
@@ -23,19 +41,31 @@ export async function executeHttpRequest(
     url: string,
     headers: Record<string, string>,
     body: string,
-    auth: AuthConfig
+    auth: AuthConfig,
+    activeEnv: Environment | null = null
 ): Promise<ResponseData> {
     const startTime = performance.now();
 
+    const substitutedUrl = substituteVariables(url, activeEnv);
+    const substitutedBody = substituteVariables(body, activeEnv);
+
     // Validate URL format before making the request
     try {
-        new URL(url);
+        new URL(substitutedUrl);
     } catch {
         throw new Error("Invalid URL format. Please enter a valid URL (e.g., https://example.com)");
     }
 
+    const substitutedHeaders: Record<string, string> = {};
+    Object.entries(headers).forEach(([key, value]) => {
+        substitutedHeaders[substituteVariables(key, activeEnv)] = substituteVariables(value, activeEnv);
+    });
+
     const authHeaders = buildAuthHeaders(auth);
-    const allHeaders = { ...headers, ...authHeaders };
+    // Note: We might want to substitute vars in auth too, but usually it's plain tokens/passwords
+    // For now, let's keep it simple.
+
+    const allHeaders = { ...substitutedHeaders, ...authHeaders };
 
     const options: {
         method: string;
@@ -48,8 +78,8 @@ export async function executeHttpRequest(
     }
 
     const canHaveBody = method !== "GET" && method !== "HEAD";
-    if (canHaveBody && body.trim()) {
-        options.body = body;
+    if (canHaveBody && substitutedBody.trim()) {
+        options.body = substitutedBody;
         if (!options.headers) {
             options.headers = {};
         }
@@ -58,7 +88,7 @@ export async function executeHttpRequest(
         }
     }
 
-    const res = await tauriFetch(url, options);
+    const res = await tauriFetch(substitutedUrl, options);
     const endTime = performance.now();
     const timing = endTime - startTime;
 
