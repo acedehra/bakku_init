@@ -19,19 +19,24 @@ export const substituteVariables = (
     return result;
 };
 
-export const buildAuthHeaders = (authConfig: AuthConfig): Record<string, string> => {
+export const buildAuthHeaders = (authConfig: AuthConfig, activeEnv: Environment | null = null): Record<string, string> => {
     const authHeaders: Record<string, string> = {};
     if (authConfig.type === "Basic" && authConfig.username && authConfig.password) {
-        const credentials = btoa(`${authConfig.username}:${authConfig.password}`);
+        const substitutedUsername = substituteVariables(authConfig.username, activeEnv);
+        const substitutedPassword = substituteVariables(authConfig.password, activeEnv);
+        const credentials = btoa(`${substitutedUsername}:${substitutedPassword}`);
         authHeaders["Authorization"] = `Basic ${credentials}`;
     } else if (authConfig.type === "Bearer" && authConfig.token) {
-        authHeaders["Authorization"] = `Bearer ${authConfig.token}`;
+        const substitutedToken = substituteVariables(authConfig.token, activeEnv);
+        authHeaders["Authorization"] = `Bearer ${substitutedToken}`;
     } else if (
         authConfig.type === "Custom" &&
         authConfig.headerName &&
         authConfig.headerValue
     ) {
-        authHeaders[authConfig.headerName] = authConfig.headerValue;
+        const substitutedHeaderName = substituteVariables(authConfig.headerName, activeEnv);
+        const substitutedHeaderValue = substituteVariables(authConfig.headerValue, activeEnv);
+        authHeaders[substitutedHeaderName] = substitutedHeaderValue;
     }
     return authHeaders;
 };
@@ -61,9 +66,7 @@ export async function executeHttpRequest(
         substitutedHeaders[substituteVariables(key, activeEnv)] = substituteVariables(value, activeEnv);
     });
 
-    const authHeaders = buildAuthHeaders(auth);
-    // Note: We might want to substitute vars in auth too, but usually it's plain tokens/passwords
-    // For now, let's keep it simple.
+    const authHeaders = buildAuthHeaders(auth, activeEnv);
 
     const allHeaders = { ...substitutedHeaders, ...authHeaders };
 
