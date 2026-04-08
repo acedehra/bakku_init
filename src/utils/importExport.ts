@@ -150,7 +150,7 @@ export function exportData(options: ExportOptions = {}): string {
     // Get environments from localStorage
     if (options.includeEnvironments !== false) {
         try {
-            const envData = localStorage.getItem("kordix_environments");
+            const envData = localStorage.getItem("bakku_environments");
             if (envData) {
                 exportData.environments = JSON.parse(envData);
             }
@@ -162,7 +162,7 @@ export function exportData(options: ExportOptions = {}): string {
     // Get history from localStorage
     if (options.includeHistory !== false) {
         try {
-            const historyData = localStorage.getItem("kordix_request_history");
+            const historyData = localStorage.getItem("bakku_request_history");
             if (historyData) {
                 exportData.history = JSON.parse(historyData);
             }
@@ -183,7 +183,7 @@ export function downloadExport(data: string, filename?: string): void {
     const link = document.createElement("a");
     link.href = url;
     link.download =
-        filename || `kordix-export-${new Date().toISOString().split("T")[0]}.json`;
+        filename || `bakku-export-${new Date().toISOString().split("T")[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -244,7 +244,7 @@ export function importData(
                 }));
 
                 localStorage.setItem(
-                    "kordix_environments",
+                    "bakku_environments",
                     JSON.stringify(envsWithNewIds)
                 );
                 importedEnvironments = envsWithNewIds.length;
@@ -263,7 +263,7 @@ export function importData(
                 }));
 
                 localStorage.setItem(
-                    "kordix_request_history",
+                    "bakku_request_history",
                     JSON.stringify(historyWithNewIds)
                 );
                 importedHistoryItems = historyWithNewIds.length;
@@ -384,8 +384,8 @@ export function exportAll(): void {
  * Clear all data from localStorage
  */
 export function clearAllData(): void {
-    localStorage.removeItem("kordix_environments");
-    localStorage.removeItem("kordix_request_history");
-    localStorage.removeItem("kordix_active_env_id");
-    localStorage.removeItem("kordix_panel_widths");
+    localStorage.removeItem("bakku_environments");
+    localStorage.removeItem("bakku_request_history");
+    localStorage.removeItem("bakku_active_env_id");
+    localStorage.removeItem("bakku_panel_widths");
 }

@@ -1,4 +1,4 @@
-# Kordix
+# Bakku
 
 A powerful, modern desktop HTTP client built with Tauri and React, designed for developers who need a fast, efficient alternative to web-based API clients.
 
@@ -46,8 +46,8 @@ A powerful, modern desktop HTTP client built with Tauri and React, designed for 
 
 ```bash
 # Clone the repository
-git clone https://github.com/acedehra/kordix_init.git
-cd kordix_init
+git clone https://github.com/acedehra/bakku.git
+cd bakku
 
 # Install dependencies
 bun install
@@ -61,7 +61,7 @@ bun run build
 
 ### Pre-built Binaries
 
-Download the latest release from the [GitHub Releases](https://github.com/acedehra/kordix_init/releases) page for your platform:
+Download the latest release from the [GitHub Releases](https://github.com/acedehra/bakku/releases) page for your platform:
 
 - **macOS**: `.dmg` file for Intel and Apple Silicon
 - **Windows**: `.msi` or `.exe` installer
@@ -133,7 +133,7 @@ The application supports various settings that can be configured through the UI:
 ### Project Structure
 
 ```
-kordix/
+bakku/
 ├── src/                    # Frontend React source
 │   ├── components/         # React components
 │   ├── hooks/             # Custom React hooks
@@ -225,9 +225,9 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 
 ## Support
 
-- **GitHub Issues**: [Report bugs and request features](https://github.com/acedehra/kordix_init/issues)
-- **Discussions**: [Ask questions and share ideas](https://github.com/acedehra/kordix_init/discussions)
-- **Documentation**: [Full documentation](https://github.com/acedehra/kordix_init/wiki)
+- **GitHub Issues**: [Report bugs and request features](https://github.com/acedehra/bakku/issues)
+- **Discussions**: [Ask questions and share ideas](https://github.com/acedehra/bakku/discussions)
+- **Documentation**: [Full documentation](https://github.com/acedehra/bakku/wiki)
 
 ## Roadmap
 
@@ -259,10 +259,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Links
 
-- **Website**: [https://kordix.app](https://kordix.app)
-- **Repository**: [https://github.com/acedehra/kordix_init](https://github.com/acedehra/kordix_init)
-- **Documentation**: [https://docs.kordix.app](https://docs.kordix.app)
-- **Twitter**: [@kordix_app](https://twitter.com/kordix_app)
+- **Website**: [https://bakku.app](https://bakku.app)
+- **Repository**: [https://github.com/acedehra/bakku](https://github.com/acedehra/bakku)
+- **Documentation**: [https://docs.bakku.app](https://docs.bakku.app)
+- **Twitter**: [@bakku_app](https://twitter.com/bakku_app)
 
 ---
 

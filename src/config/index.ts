@@ -1,5 +1,5 @@
 /**
- * Kordix Application Configuration
+ * Bakku Application Configuration
  *
  * This module centralizes all application configuration,
  * with support for environment variable overrides.
@@ -94,7 +94,7 @@ export const analyticsConfig = {
  * Application Metadata
  */
 export const appConfig = {
-    name: "Kordix",
+    name: "Bakku",
     version: "0.1.0",
-    repository: "https://github.com/acedehra/kordix_init",
+    repository: "https://github.com/acedehra/bakku",
 } as const;

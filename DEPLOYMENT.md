@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers building, packaging, and deploying Kordix for production distribution.
+This guide covers building, packaging, and deploying Bakku for production distribution.
 
 ## Table of Contents
 
@@ -105,8 +105,8 @@ bun run tauri build --target x86_64-apple-dmg  # Intel
 
 #### Build Outputs
 
-- **DMG Installer**: `src-tauri/target/release/bundle/dmg/kordix_<version>_aarch64.dmg`
-- **App Bundle**: `src-tauri/target/release/bundle/macos/kordix.app`
+- **DMG Installer**: `src-tauri/target/release/bundle/dmg/bakku_<version>_aarch64.dmg`
+- **App Bundle**: `src-tauri/target/release/bundle/macos/bakku.app`
 
 #### Code Signing
 
@@ -133,7 +133,7 @@ bun run tauri build
 cargo install cargo-notary
 
 # Notarize the app
-cargo-notary submit --file kordix.dmg --apple-id "your@email.com" --password "app-specific-password"
+cargo-notary submit --file bakku.dmg --apple-id "your@email.com" --password "app-specific-password"
 ```
 
 ### Windows
@@ -154,9 +154,9 @@ bun run tauri build --target nsis --target i686-pc-windows-msvc
 
 #### Build Outputs
 
-- **MSI Installer**: `src-tauri/target/release/bundle/msi/kordix_<version>_x64_en-US.msi`
-- **NSIS Installer**: `src-tauri/target/release/bundle/nsis/kordix_<version>_x64-setup.exe`
-- **Executable**: `src-tauri/target/release/kordix.exe`
+- **MSI Installer**: `src-tauri/target/release/bundle/msi/bakku_<version>_x64_en-US.msi`
+- **NSIS Installer**: `src-tauri/target/release/bundle/nsis/bakku_<version>_x64-setup.exe`
+- **Executable**: `src-tauri/target/release/bakku.exe`
 
 #### Code Signing
 
@@ -171,7 +171,7 @@ bun run tauri build --target nsis --target i686-pc-windows-msvc
 }
 
 # Or sign manually after build
-signtool sign /f certificate.pfx /p password /t http://timestamp.digicert.com /fd sha256 kordix.exe
+signtool sign /f certificate.pfx /p password /t http://timestamp.digicert.com /fd sha256 bakku.exe
 ```
 
 ### Linux
@@ -191,9 +191,9 @@ bun run tauri build --target rpm
 
 #### Build Outputs
 
-- **DEB Package**: `src-tauri/target/release/bundle/deb/kordix_<version>_amd64.deb`
-- **AppImage**: `src-tauri/target/release/bundle/appimage/kordix_<version>_amd64.AppImage`
-- **RPM Package**: `src-tauri/target/release/bundle/rpm/kordix-<version>.x86_64.rpm`
+- **DEB Package**: `src-tauri/target/release/bundle/deb/bakku_<version>_amd64.deb`
+- **AppImage**: `src-tauri/target/release/bundle/appimage/bakku_<version>_amd64.AppImage`
+- **RPM Package**: `src-tauri/target/release/bundle/rpm/bakku-<version>.x86_64.rpm`
 
 #### Repository Setup (Optional)
 
@@ -459,7 +459,7 @@ Solution:
 
 If you encounter issues not covered in this guide:
 
-1. Check the [GitHub Issues](https://github.com/acedehra/kordix_init/issues)
+1. Check the [GitHub Issues](https://github.com/acedehra/bakku/issues)
 2. Search existing issues before creating a new one
 3. Provide detailed information about your environment and the issue
 4. Include logs and screenshots if applicable
