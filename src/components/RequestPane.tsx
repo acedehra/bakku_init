@@ -3,6 +3,7 @@ import { RequestData, HttpMethod, AuthType, Environment } from "../types";
 import { Trash2, FileText, List, Settings2, ShieldCheck, Eye, EyeOff, Settings, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VariableInput } from "./VariableInput";
+import { keyboardShortcuts, announceRequestSent, getMethodAriaLabel } from "../utils/accessibility";
 
 interface RequestPaneProps {
   method: HttpMethod;
@@ -58,6 +59,24 @@ export function RequestPane({
   const [justAddedHeader, setJustAddedHeader] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showToken, setShowToken] = useState(false);
+
+  // Set up keyboard shortcuts
+  useEffect(() => {
+    const unregisterSend = keyboardShortcuts.register("CtrlOrCmd+Enter", () => {
+      if (url.trim() && !loading) {
+        handleSend();
+      }
+    });
+
+    return () => {
+      unregisterSend();
+    };
+  }, [url, loading]);
+
+  const handleSend = () => {
+    announceRequestSent(method, url);
+    onSend();
+  };
 
   const activeEnv = environments.find(e => e.id === activeEnvId) || null;
 
@@ -211,6 +230,7 @@ export function RequestPane({
             value={method}
             onChange={(e) => onMethodChange(e.target.value as HttpMethod)}
             className="h-10 rounded-md border border-input bg-background px-2 text-sm font-bold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
+            aria-label="HTTP method"
           >
             {["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"].map((m) => (
               <option key={m} value={m} className="font-sans">
@@ -229,11 +249,14 @@ export function RequestPane({
             onChange={(val) => onUrlChange(val)}
             placeholder="https://api.example.com/resource"
             className="flex-1"
+            aria-label="Request URL"
           />
           <button
-            onClick={onSend}
+            onClick={handleSend}
             disabled={loading || !url.trim()}
             className="h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Send request (Ctrl/Cmd + Enter)"
+            title="Send request (Ctrl/Cmd + Enter)"
           >
             {loading ? "Sending..." : "Send"}
           </button>
@@ -433,11 +456,14 @@ export function RequestPane({
                       }
                       className="w-full"
                       type={showPassword ? "text" : "password"}
+                      aria-label={showPassword ? "Password - visible" : "Password - hidden"}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showPassword}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -457,11 +483,14 @@ export function RequestPane({
                     }
                     className="w-full"
                     type={showToken ? "text" : "password"}
+                    aria-label={showToken ? "Token - visible" : "Token - hidden"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowToken(!showToken)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showToken ? "Hide token" : "Show token"}
+                    aria-pressed={showToken}
                   >
                     {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>

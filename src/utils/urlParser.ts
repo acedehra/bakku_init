@@ -7,21 +7,44 @@ export const hasProtocol = (url: string): boolean => {
 export const getBaseUrl = (fullUrl: string): string => {
     if (!fullUrl.trim()) return fullUrl;
 
-    // If URL has a protocol, use URL constructor
     if (hasProtocol(fullUrl)) {
         try {
             const urlObj = new URL(fullUrl);
-            return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+            
+            if (!urlObj.hostname) {
+                return fullUrl;
+            }
+
+            let result = fullUrl;
+            
+            // If URL successfully parsed and identified a query string, strip exactly that string
+            if (urlObj.search) {
+                const searchIndex = fullUrl.indexOf(urlObj.search);
+                if (searchIndex !== -1) {
+                    result = fullUrl.substring(0, searchIndex) + fullUrl.substring(searchIndex + urlObj.search.length);
+                }
+            }
+            return result;
         } catch {
-            // Fall through to manual extraction
+            // Fall through to manual parsing for unrecognized protocols
         }
     }
 
-    // Manual extraction for URLs without protocol or if URL constructor fails
     const queryIndex = fullUrl.indexOf('?');
+    const hashIndex = fullUrl.indexOf('#');
+    
     if (queryIndex !== -1) {
-        return fullUrl.substring(0, queryIndex);
+        if (hashIndex !== -1 && hashIndex < queryIndex) {
+            return fullUrl;
+        }
+
+        let base = fullUrl.substring(0, queryIndex);
+        if (hashIndex !== -1 && hashIndex > queryIndex) {
+            base += fullUrl.substring(hashIndex);
+        }
+        return base;
     }
+
     return fullUrl;
 };
 
@@ -85,42 +108,33 @@ export const parseUrlParams = (fullUrl: string): Record<string, string> => {
 
 // Build full URL with params
 export const buildUrlWithParams = (baseUrl: string, queryParams: Record<string, string>): string => {
-    if (Object.keys(queryParams).length === 0) return baseUrl;
     if (!baseUrl.trim()) return baseUrl;
+    if (Object.keys(queryParams).length === 0) return baseUrl;
 
-    // If URL has a protocol, try using URL constructor
-    if (hasProtocol(baseUrl)) {
-        try {
-            const urlObj = new URL(baseUrl);
-
-            // Clear existing search params and add new ones
-            urlObj.search = '';
-            Object.entries(queryParams).forEach(([key, value]) => {
-                if (key) {
-                    // Allow empty values to preserve params while user is typing
-                    urlObj.searchParams.set(key, value || '');
-                }
-            });
-
-            return urlObj.toString();
-        } catch {
-            // Fall through to manual building
-        }
-    }
-
-    // Manual building for URLs without protocol or if URL constructor fails
     const queryPairs: string[] = [];
     Object.entries(queryParams).forEach(([key, value]) => {
         if (key) {
-            // Allow empty values
             queryPairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(value || '')}`);
         }
     });
 
     if (queryPairs.length === 0) return baseUrl;
 
-    // Remove existing query params from baseUrl if any
-    const baseWithoutQuery = baseUrl.split('?')[0];
-    const separator = baseUrl.includes('?') ? '&' : '?';
-    return `${baseWithoutQuery}${separator}${queryPairs.join('&')}`;
+    const hashIndex = baseUrl.indexOf('#');
+    let baseWithoutHash = baseUrl;
+    let hash = '';
+    
+    if (hashIndex !== -1) {
+        hash = baseUrl.substring(hashIndex);
+        baseWithoutHash = baseUrl.substring(0, hashIndex);
+    }
+
+    const queryIndex = baseWithoutHash.indexOf('?');
+    let baseWithoutQuery = baseWithoutHash;
+    
+    if (queryIndex !== -1) {
+        baseWithoutQuery = baseWithoutHash.substring(0, queryIndex);
+    }
+
+    return `${baseWithoutQuery}?${queryPairs.join('&')}${hash}`;
 };

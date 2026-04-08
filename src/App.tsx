@@ -7,15 +7,15 @@ import { ResizeHandle } from "./components/ResizeHandle";
 import {
   HttpMethod,
   RequestData,
-  ResponseData,
   RequestHistoryItem,
   AuthConfig,
 } from "./types";
 import { usePanelResize } from "./hooks/usePanelResize";
 import { useRequestHistory } from "./hooks/useRequestHistory";
 import { useUrlParams } from "./hooks/useUrlParams";
-import { executeHttpRequest, formatError } from "./utils/httpClient";
-import { getBaseUrl, buildUrlWithParams } from "./utils/urlParser";
+import { useRequestExecution } from "./hooks/useRequestExecution";
+import { useRequestHistoryManager } from "./hooks/useRequestHistoryManager";
+import { getBaseUrl } from "./utils/urlParser";
 import { useEnvironments } from "./hooks/useEnvironments";
 import { EnvironmentManager } from "./components/EnvironmentManager";
 
@@ -61,101 +61,62 @@ function App() {
 
   const [isEnvManagerOpen, setIsEnvManagerOpen] = useState(false);
 
-
   const [method, setMethod] = useState<HttpMethod>("GET");
   const [headers, setHeaders] = useState<Record<string, string>>({});
   const [body, setBody] = useState("");
   const [auth, setAuth] = useState<AuthConfig>({ type: "None" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [response, setResponse] = useState<ResponseData | null>(null);
-  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+
+  const {
+    loading,
+    error,
+    response,
+    executeRequest,
+    clearError,
+    clearResponse,
+  } = useRequestExecution();
+
+  const {
+    selectedHistoryId,
+    handleHistorySelect,
+    clearHistorySelection,
+  } = useRequestHistoryManager({
+    setMethod,
+    updateFromHistory,
+    setHeaders,
+    setBody,
+    setAuth,
+    clearResponse,
+    clearError,
+  });
 
   async function sendRequest() {
-    setLoading(true);
-    setError(null);
-    setResponse(null);
-    setSelectedHistoryId(null);
+    clearHistorySelection();
+    await executeRequest(method, url, headers, body, auth, activeEnv);
 
-    try {
-      const responseData = await executeHttpRequest(method, url, headers, body, auth, activeEnv);
-      setResponse(responseData);
+    // Save to history after request completes (success or failure)
+    const baseUrl = getBaseUrl(url);
+    const requestData: RequestData = {
+      method,
+      url: baseUrl,
+      headers,
+      params,
+      body,
+      auth,
+    };
 
-      // Save to history
-      const baseUrl = getBaseUrl(url);
-      const requestData: RequestData = {
-        method,
-        url: baseUrl,
-        headers,
-        params,
-        body,
-        auth,
-      };
+    const historyItem: RequestHistoryItem = {
+      id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      method,
+      url,
+      timestamp: Date.now(),
+      status: response?.status ?? null,
+      statusText: response?.statusText ?? null,
+      requestData,
+      responseData: response ?? null,
+    };
 
-      const historyItem: RequestHistoryItem = {
-        id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        method,
-        url,
-        timestamp: Date.now(),
-        status: null,
-        statusText: null,
-        requestData,
-        responseData: null,
-      };
-
-      addToHistory(historyItem);
-    } catch (err) {
-      const errorMessage = formatError(err);
-      setError(errorMessage);
-
-      // Save failed request to history
-      const baseUrl = getBaseUrl(url);
-      const requestData: RequestData = {
-        method,
-        url: baseUrl,
-        headers,
-        params,
-        body,
-        auth,
-      };
-
-      const historyItem: RequestHistoryItem = {
-        id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        method,
-        url,
-        timestamp: Date.now(),
-        status: null,
-        statusText: null,
-        requestData,
-        responseData: null,
-      };
-
-      addToHistory(historyItem);
-    } finally {
-      setLoading(false);
-    }
+    addToHistory(historyItem);
   }
-
-  const handleHistorySelect = (item: RequestHistoryItem) => {
-    setMethod(item.requestData.method);
-
-    // Build full URL with params when loading from history
-    const fullUrl = buildUrlWithParams(item.requestData.url, item.requestData.params);
-
-    updateFromHistory(fullUrl, item.requestData.params);
-
-    setHeaders(item.requestData.headers);
-    setBody(item.requestData.body);
-    setAuth(item.requestData.auth);
-    setSelectedHistoryId(item.id);
-
-    if (item.responseData) {
-      setResponse(item.responseData);
-    } else {
-      setResponse(null);
-    }
-    setError(null);
-  };
 
   return (
     <div className="h-screen bg-background text-foreground flex overflow-hidden">

@@ -1,5 +1,107 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { AuthConfig, HttpMethod, ResponseData, Environment } from "../types";
+import { createLogger } from "./logger";
+import { getCachedRequest, cacheRequest } from "./requestCache";
+import { trackRequest, completeRequest } from "./performance";
+import { requestConfig } from "../config";
+
+const logger = createLogger({ module: "httpClient" });
+
+/**
+ * Status codes that should trigger a retry
+ */
+const RETRYABLE_STATUS_CODES = [408, 429, 500, 502, 503, 504];
+
+/**
+ * Check if an error is retryable
+ */
+function isRetryableError(error: unknown): boolean {
+    if (error instanceof Error) {
+        const message = error.message.toLowerCase();
+
+        // Network errors
+        if (
+            message.includes("network error") ||
+            message.includes("econnrefused") ||
+            message.includes("enotfound") ||
+            message.includes("etimedout") ||
+            message.includes("timeout") ||
+            message.includes("connection reset") ||
+            message.includes("connection refused")
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Calculate delay with exponential backoff
+ */
+function calculateRetryDelay(attempt: number, baseDelay: number = requestConfig.retryDelayMs): number {
+    const maxDelay = 30000; // 30 seconds max delay
+    const delay = baseDelay * Math.pow(requestConfig.retryBackoffMultiplier, attempt - 1);
+    return Math.min(delay, maxDelay);
+}
+
+/**
+ * Sleep for a specified duration
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Execute HTTP request with retry logic
+ */
+async function executeWithRetry<T>(
+    fn: () => Promise<T>,
+    shouldRetry: (result: T) => boolean,
+    maxRetries: number = requestConfig.maxRetries
+): Promise<T> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+        try {
+            const result = await fn();
+
+            // Check if we should retry based on result
+            if (attempt <= maxRetries && shouldRetry(result)) {
+                const delay = calculateRetryDelay(attempt);
+                logger.warn(`Retrying request (attempt ${attempt}/${maxRetries})`, {
+                    delayMs: delay,
+                });
+                await sleep(delay);
+                continue;
+            }
+
+            return result;
+        } catch (error) {
+            lastError = error;
+
+            // Check if we should retry based on error
+            if (attempt <= maxRetries && isRetryableError(error)) {
+                const delay = calculateRetryDelay(attempt);
+                logger.warn(`Retrying request due to error (attempt ${attempt}/${maxRetries})`, {
+                    error: error instanceof Error ? error.message : String(error),
+                    delayMs: delay,
+                });
+                await sleep(delay);
+                continue;
+            }
+
+            // Not retryable, throw immediately
+            throw error;
+        }
+    }
+
+    // All retries exhausted
+    throw lastError;
+}
+
+function sanitizeVariableValue(value: string): string {
+    return value.replace(/[<>]/g, '');
+}
 
 export const substituteVariables = (
     text: string,
@@ -13,7 +115,7 @@ export const substituteVariables = (
             // Escape special regex characters in the key
             const escapedKey = v.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp(`{{${escapedKey}}}`, "g");
-            result = result.replace(regex, v.value);
+            result = result.replace(regex, sanitizeVariableValue(v.value));
         }
     });
     return result;
@@ -24,7 +126,7 @@ export const buildAuthHeaders = (authConfig: AuthConfig, activeEnv: Environment 
     if (authConfig.type === "Basic" && authConfig.username && authConfig.password) {
         const substitutedUsername = substituteVariables(authConfig.username, activeEnv);
         const substitutedPassword = substituteVariables(authConfig.password, activeEnv);
-        const credentials = btoa(`${substitutedUsername}:${substitutedPassword}`);
+        const credentials = btoa(`${encodeURIComponent(substitutedUsername)}:${encodeURIComponent(substitutedPassword)}`);
         authHeaders["Authorization"] = `Basic ${credentials}`;
     } else if (authConfig.type === "Bearer" && authConfig.token) {
         const substitutedToken = substituteVariables(authConfig.token, activeEnv);
@@ -49,6 +151,8 @@ export async function executeHttpRequest(
     auth: AuthConfig,
     activeEnv: Environment | null = null
 ): Promise<ResponseData> {
+    // Start performance tracking
+    const endTracking = trackRequest(url, method);
     const startTime = performance.now();
 
     const substitutedUrl = substituteVariables(url, activeEnv);
@@ -58,6 +162,7 @@ export async function executeHttpRequest(
     try {
         new URL(substitutedUrl);
     } catch {
+        logger.error("Invalid URL format", undefined, { url: substitutedUrl });
         throw new Error("Invalid URL format. Please enter a valid URL (e.g., https://example.com)");
     }
 
@@ -91,7 +196,33 @@ export async function executeHttpRequest(
         }
     }
 
-    const res = await tauriFetch(substitutedUrl, options);
+    // Log request
+    logger.logRequest({
+        method,
+        url: substitutedUrl,
+        headers: allHeaders,
+        body: options.body,
+    });
+
+    // Check cache for GET requests
+    if (method === "GET") {
+        const cached = getCachedRequest<ResponseData>(substitutedUrl, {
+            headers: allHeaders,
+        });
+        if (cached) {
+            logger.info("Cache hit", { url: substitutedUrl });
+            endTracking();
+            completeRequest(substitutedUrl, method, cached.status ?? 200, cached.size ?? 0, true);
+            return cached;
+        }
+    }
+
+    // Execute request with retry logic
+    const res = await executeWithRetry(
+        async () => tauriFetch(substitutedUrl, options),
+        (response) => RETRYABLE_STATUS_CODES.includes(response.status)
+    );
+
     const endTime = performance.now();
     const timing = endTime - startTime;
 
@@ -119,7 +250,16 @@ export async function executeHttpRequest(
         formattedBody = text || "(empty response)";
     }
 
-    return {
+    // Log response
+    logger.logResponse({
+        status: res.status,
+        statusText: res.statusText,
+        headers: responseHeaders,
+        timing,
+        size: responseSize,
+    });
+
+    const responseData = {
         status: res.status,
         statusText: res.statusText,
         headers: responseHeaders,
@@ -127,6 +267,20 @@ export async function executeHttpRequest(
         timing,
         size: responseSize,
     };
+
+    // Cache successful GET responses
+    if (method === "GET" && res.status >= 200 && res.status < 300) {
+        cacheRequest(substitutedUrl, responseData, {
+            headers: allHeaders,
+        });
+        logger.info("Cached response", { url: substitutedUrl, status: res.status });
+    }
+
+    // Complete performance tracking
+    endTracking();
+    completeRequest(substitutedUrl, method, res.status, responseSize, false);
+
+    return responseData;
 }
 
 export function formatError(err: unknown): string {
