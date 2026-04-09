@@ -1,24 +1,23 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import { HistorySidebar } from "./components/HistorySidebar";
+import { SavedRequestsSidebar } from "./components/SavedRequestsSidebar";
 import { RequestPane } from "./components/RequestPane";
 import { ResponsePane } from "./components/ResponsePane";
 import { ResizeHandle } from "./components/ResizeHandle";
 import {
   HttpMethod,
-  RequestData,
-  RequestHistoryItem,
+  SavedRequest,
+  RequestFolder,
   AuthConfig,
 } from "./types";
 import { usePanelResize } from "./hooks/usePanelResize";
-import { useRequestHistory } from "./hooks/useRequestHistory";
+import { useSavedRequests } from "./hooks/useSavedRequests";
 import { useUrlParams } from "./hooks/useUrlParams";
 import { useRequestExecution } from "./hooks/useRequestExecution";
-import { useRequestHistoryManager } from "./hooks/useRequestHistoryManager";
+import { useSavedRequestsManager } from "./hooks/useSavedRequestsManager";
 import { getBaseUrl } from "./utils/urlParser";
 import { useEnvironments } from "./hooks/useEnvironments";
 import { EnvironmentManager } from "./components/EnvironmentManager";
-
 
 function App() {
   useEffect(() => {
@@ -37,16 +36,23 @@ function App() {
   } = usePanelResize();
 
   const {
-    history,
-    addToHistory
-  } = useRequestHistory();
+    savedRequests,
+    folders,
+    createRequest,
+    updateRequest,
+    deleteRequest,
+    createFolder,
+    updateFolder,
+    deleteFolder,
+    autoSaveRequest,
+  } = useSavedRequests();
 
   const {
     url,
     setUrl,
     params,
     setParams,
-    updateFromHistory
+    updateFromHistory,
   } = useUrlParams("https://jsonplaceholder.typicode.com/todos/1");
 
   const {
@@ -60,6 +66,8 @@ function App() {
   } = useEnvironments();
 
   const [isEnvManagerOpen, setIsEnvManagerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const [method, setMethod] = useState<HttpMethod>("GET");
   const [headers, setHeaders] = useState<Record<string, string>>({});
@@ -76,10 +84,9 @@ function App() {
   } = useRequestExecution();
 
   const {
-    selectedHistoryId,
-    handleHistorySelect,
-    clearHistorySelection,
-  } = useRequestHistoryManager({
+    selectedSavedRequestId,
+    handleSavedRequestSelect,
+  } = useSavedRequestsManager({
     setMethod,
     updateFromHistory,
     setHeaders,
@@ -89,42 +96,73 @@ function App() {
     clearError,
   });
 
+  const handleCreateRequest = () => {
+    const newRequest = createRequest("New Request");
+    handleSavedRequestSelect(newRequest);
+  };
+
+  const handleCreateFolder = () => {
+    const name = prompt("Enter folder name:");
+    if (name && name.trim()) {
+      createFolder(name.trim());
+    }
+  };
+
+  const handleRenameFolder = (folder: RequestFolder, newName: string) => {
+    updateFolder({ ...folder, name: newName });
+  };
+
+  const handleRenameRequest = (request: SavedRequest, newName: string) => {
+    updateRequest({ ...request, name: newName });
+  };
+
+  const handleToggleFolder = (folderId: string) => {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  };
+
   async function sendRequest() {
-    clearHistorySelection();
     await executeRequest(method, url, headers, body, auth, activeEnv);
 
-    // Save to history after request completes (success or failure)
-    const baseUrl = getBaseUrl(url);
-    const requestData: RequestData = {
-      method,
-      url: baseUrl,
-      headers,
-      params,
-      body,
-      auth,
-    };
-
-    const historyItem: RequestHistoryItem = {
-      id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      method,
-      url,
-      timestamp: Date.now(),
-      status: response?.status ?? null,
-      statusText: response?.statusText ?? null,
-      requestData,
-      responseData: response ?? null,
-    };
-
-    addToHistory(historyItem);
+    // Auto-save to selected request on Send
+    if (selectedSavedRequestId) {
+      const baseUrl = getBaseUrl(url);
+      autoSaveRequest(selectedSavedRequestId, {
+        method,
+        url: baseUrl,
+        headers,
+        params,
+        body,
+        auth,
+      });
+    }
   }
 
   return (
     <div className="h-screen bg-background text-foreground flex overflow-hidden">
       <div style={{ width: `${sidebarWidth}px` }} className="h-screen flex-shrink-0">
-        <HistorySidebar
-          history={history}
-          selectedId={selectedHistoryId}
-          onSelect={handleHistorySelect}
+        <SavedRequestsSidebar
+          savedRequests={savedRequests}
+          folders={folders}
+          selectedRequestId={selectedSavedRequestId}
+          expandedFolders={expandedFolders}
+          searchQuery={searchQuery}
+          onSelectRequest={handleSavedRequestSelect}
+          onCreateRequest={handleCreateRequest}
+          onCreateFolder={handleCreateFolder}
+          onDeleteRequest={deleteRequest}
+          onDeleteFolder={deleteFolder}
+          onToggleFolder={handleToggleFolder}
+          onSearchChange={setSearchQuery}
+          onRenameFolder={handleRenameFolder}
+          onRenameRequest={handleRenameRequest}
         />
       </div>
       <ResizeHandle onResize={handleSidebarResize} />
