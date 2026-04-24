@@ -52,3 +52,26 @@ export interface RequestHistoryItem {
   responseData: ResponseData | null;
   folder?: string;
 }
+
+export interface SavedRequest {
+  id: string;
+  name: string;
+  method: HttpMethod;
+  url: string;
+  headers: Record<string, string>;
+  params: Record<string, string>;
+  body: string;
+  auth: AuthConfig;
+  folderId: string | null;
+  createdAt: number;
+  updatedAt: number;
+  /** Last successful HTTP response when this saved request was sent (from SQLite). */
+  lastResponse?: ResponseData | null;
+}
+
+export interface RequestFolder {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+}
