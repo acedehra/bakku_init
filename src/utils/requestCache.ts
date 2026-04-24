@@ -22,7 +22,7 @@ interface CacheEntry<T> {
 export interface CacheOptions {
     ttl?: number; // Time to live in milliseconds
     enabled?: boolean; // Whether caching is enabled
-    headers?: Record<string, string>; // Optional headers to include in cache key
+    headers?: Record<string, string> | [string, string][]; // Optional headers to include in cache key
 }
 
 /**
@@ -211,7 +211,7 @@ export async function getCachedValue<T>(
 export function cacheRequest(
     url: string,
     value: unknown,
-    options?: CacheOptions & { headers?: Record<string, string> }
+    options?: CacheOptions
 ): void {
     const key = defaultCache["generateKey"]?.(url, options) ?? url;
     defaultCache.set(key, value, options);
@@ -222,7 +222,7 @@ export function cacheRequest(
  */
 export function getCachedRequest<T>(
     url: string,
-    options?: CacheOptions & { headers?: Record<string, string> }
+    options?: CacheOptions
 ): T | null {
     const key = defaultCache["generateKey"]?.(url, options) ?? url;
     return defaultCache.get(key, options) as T | null;

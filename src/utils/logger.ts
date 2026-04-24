@@ -210,13 +210,18 @@ export class Logger {
     logRequest(request: {
         method: string;
         url: string;
-        headers?: Record<string, string>;
+        headers?: Record<string, string> | [string, string][];
         body?: string;
     }): void {
+        const hasHeaders = !!request.headers && (
+            Array.isArray(request.headers) 
+                ? request.headers.length > 0 
+                : Object.keys(request.headers).length > 0
+        );
         this.info(`HTTP Request: ${request.method} ${request.url}`, {
             method: request.method,
             url: request.url,
-            hasHeaders: !!request.headers && Object.keys(request.headers).length > 0,
+            hasHeaders,
             hasBody: !!request.body && request.body.length > 0,
         });
     }
@@ -227,7 +232,7 @@ export class Logger {
     logResponse(response: {
         status: number;
         statusText: string;
-        headers?: Record<string, string>;
+        headers?: Record<string, string> | [string, string][];
         timing?: number;
         size?: number;
     }): void {
