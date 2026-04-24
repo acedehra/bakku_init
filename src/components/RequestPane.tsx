@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { HttpMethod, AuthType, Environment, KVEntry, AuthConfig } from "../types";
-import { Trash2, FileText, List, Settings2, ShieldCheck, Eye, EyeOff, Settings, ChevronDown } from "lucide-react";
+import { FileText, List, ShieldCheck, Eye, EyeOff, Settings, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VariableInput } from "./VariableInput";
 import { keyboardShortcuts, announceRequestSent } from "../utils/accessibility";
@@ -80,7 +80,7 @@ export function RequestPane({
   const tabIcons: Record<RequestTab, React.ReactNode> = {
     Body: <FileText size={14} />,
     Params: <List size={14} />,
-    Headers: <Settings2 size={14} />,
+    Headers: <Settings size={14} />,
     Auth: <ShieldCheck size={14} />,
   };
 

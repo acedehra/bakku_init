@@ -8,6 +8,7 @@ import {
   AuthConfig,
   ResponseData,
   RequestHistoryItem,
+  KVEntry,
 } from "../types";
 import { SAVED_REQUESTS_STORAGE_KEY } from "../constants";
 import { HISTORY_STORAGE_KEY } from "../constants";
@@ -39,7 +40,7 @@ function buildHistoryMigrationPayload(): { folders: RequestFolder[]; requests: S
           : Object.entries(item.requestData.headers || {}).map(([key, value]) => ({
               id: crypto.randomUUID(),
               key,
-              value,
+              value: String(value || ""),
               enabled: true,
             })),
         body: item.requestData.body,

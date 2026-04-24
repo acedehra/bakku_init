@@ -16,7 +16,6 @@ import { useSavedRequests } from "./hooks/useSavedRequests";
 import { useUrl } from "./hooks/useUrlParams";
 import { useRequestExecution } from "./hooks/useRequestExecution";
 import { useSavedRequestsManager } from "./hooks/useSavedRequestsManager";
-import { getBaseUrl } from "./utils/urlParser";
 import { useEnvironments } from "./hooks/useEnvironments";
 import { EnvironmentManager } from "./components/EnvironmentManager";
 
