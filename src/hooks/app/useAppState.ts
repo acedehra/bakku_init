@@ -98,12 +98,42 @@ export function useAppState(): AppContextValue {
     handleSavedRequestSelect(newRequest);
   }, [createRequest, handleSavedRequestSelect]);
 
-  const handleCreateFolder = useCallback(() => {
-    const name = prompt("Enter folder name:");
-    if (name && name.trim()) {
-      void createFolder(name.trim());
+  const handleCreateRequestInFolder = useCallback(async (folderId: string) => {
+    const newRequest = await createRequest("New Request", folderId);
+    handleSavedRequestSelect(newRequest);
+    // Auto-expand the folder
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      next.add(folderId);
+      return next;
+    });
+  }, [createRequest, handleSavedRequestSelect]);
+
+  const handleMoveRequestToFolder = useCallback((requestId: string, folderId: string | null) => {
+    const request = savedRequests.find((req) => req.id === requestId);
+    if (request && request.folderId !== folderId) {
+      void updateRequest({ ...request, folderId });
     }
-  }, [createFolder]);
+  }, [savedRequests, updateRequest]);
+
+  // Dialog state
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+
+  const handleCreateFolder = useCallback(() => {
+    setFolderDialogOpen(true);
+  }, []);
+
+  const handleConfirmFolderName = useCallback(
+    (name: string) => {
+      setFolderDialogOpen(false);
+      void createFolder(name);
+    },
+    [createFolder]
+  );
+
+  const handleCancelFolderName = useCallback(() => {
+    setFolderDialogOpen(false);
+  }, []);
 
   const handleRenameFolder = useCallback((folder: RequestFolder, newName: string) => {
     void updateFolder({ ...folder, name: newName });
@@ -217,11 +247,15 @@ export function useAppState(): AppContextValue {
     handleSavedRequestSelect,
     handleCreateRequest,
     handleCreateFolder,
+    handleConfirmFolderName,
+    handleCancelFolderName,
     handleRenameFolder,
     handleRenameRequest,
     handleDeleteRequest,
     handleDeleteFolder,
     handleToggleFolder,
+    handleCreateRequestInFolder,
+    handleMoveRequestToFolder,
     setActiveEnvId,
     handleOpenEnvManager,
     handleCloseEnvManager,
@@ -229,5 +263,8 @@ export function useAppState(): AppContextValue {
     handleDeleteEnvironment,
     handleAddEnvironment,
     setSearchQuery,
+    // Dialog state
+    folderDialogOpen,
+    setFolderDialogOpen,
   };
 }

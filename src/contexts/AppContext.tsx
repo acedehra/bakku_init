@@ -45,11 +45,19 @@ export interface AppActions {
   handleSavedRequestSelect: (request: SavedRequest) => void;
   handleCreateRequest: () => Promise<void>;
   handleCreateFolder: () => void;
+  handleConfirmFolderName: (name: string) => void;
+  handleCancelFolderName: () => void;
   handleRenameFolder: (folder: RequestFolder, newName: string) => void;
   handleRenameRequest: (request: SavedRequest, newName: string) => void;
   handleDeleteRequest: (id: string) => void;
   handleDeleteFolder: (id: string) => void;
   handleToggleFolder: (folderId: string) => void;
+  handleCreateRequestInFolder?: (folderId: string) => void;
+  handleMoveRequestToFolder?: (requestId: string, folderId: string | null) => void;
+
+  // Dialog state
+  folderDialogOpen: boolean;
+  setFolderDialogOpen: (open: boolean) => void;
 
   // Environment actions
   setActiveEnvId: (id: string | null) => void;

@@ -5,6 +5,7 @@ import { RequestPane } from "../RequestPane";
 import { ResponsePane } from "../ResponsePane";
 import { ResizeHandle } from "../ResizeHandle";
 import { EnvironmentManager } from "../EnvironmentManager";
+import { FolderNameDialog } from "../saved-requests/FolderNameDialog";
 
 interface AppLayoutProps extends AppContextValue {}
 
@@ -24,6 +25,8 @@ function AppLayout(props: AppLayoutProps) {
     setSearchQuery,
     handleRenameFolder,
     handleRenameRequest,
+    handleCreateRequestInFolder,
+    handleMoveRequestToFolder,
     method,
     url,
     headers,
@@ -53,6 +56,9 @@ function AppLayout(props: AppLayoutProps) {
     handleSidebarResize,
     handleResponseResize,
     isEnvManagerOpen,
+    folderDialogOpen,
+    handleConfirmFolderName,
+    handleCancelFolderName,
   } = props;
 
   return (
@@ -73,6 +79,8 @@ function AppLayout(props: AppLayoutProps) {
           onSearchChange={setSearchQuery}
           onRenameFolder={handleRenameFolder}
           onRenameRequest={handleRenameRequest}
+          onCreateRequestInFolder={handleCreateRequestInFolder}
+          onMoveRequestToFolder={handleMoveRequestToFolder}
         />
       </div>
       <ResizeHandle onResize={handleSidebarResize} />
@@ -110,6 +118,12 @@ function AppLayout(props: AppLayoutProps) {
           onClose={handleCloseEnvManager}
         />
       )}
+
+      <FolderNameDialog
+        open={folderDialogOpen}
+        onClose={handleCancelFolderName}
+        onConfirm={handleConfirmFolderName}
+      />
     </div>
   );
 }
