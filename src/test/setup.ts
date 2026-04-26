@@ -26,3 +26,6 @@ vi.stubGlobal("performance", {
 vi.stubGlobal("btoa", (str: string) => {
   return Buffer.from(str).toString("base64");
 });
+
+// Also export for bun test runner compatibility
+export const bunTestCleanup = cleanup;

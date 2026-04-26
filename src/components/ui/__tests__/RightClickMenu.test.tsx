@@ -1,7 +1,11 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { RightClickMenu, MenuItem } from "../RightClickMenu";
 import { Plus, Trash2 } from "lucide-react";
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("RightClickMenu", () => {
   const mockItems: MenuItem[] = [

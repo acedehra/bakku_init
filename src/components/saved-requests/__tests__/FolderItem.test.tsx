@@ -1,7 +1,11 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import FolderItem from "../FolderItem";
 import { RequestFolder, SavedRequest } from "../../../types";
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("FolderItem", () => {
   const mockFolder: RequestFolder = {
