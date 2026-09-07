@@ -1,258 +1,270 @@
-import { describe, it, expect } from "vitest";
-import {
-  substituteVariables,
-  buildAuthHeaders,
-  formatError,
-} from "../httpClient";
-import { Environment, AuthConfig } from "../../types";
+import { describe, it, expect, vi } from 'vitest';
+import { substituteVariables, buildAuthHeaders, formatError } from '../httpClient';
+import { Environment, AuthConfig } from '../../types';
 
-describe("httpClient", () => {
-  describe("substituteVariables", () => {
-    it("should return original text when environment is null", () => {
-      const result = substituteVariables("test {{key}} text", null);
-      expect(result).toBe("test {{key}} text");
+describe('httpClient', () => {
+  describe('substituteVariables', () => {
+    it('should return original text when environment is null', () => {
+      const result = substituteVariables('test {{key}} text', null);
+      expect(result).toBe('test {{key}} text');
     });
 
-    it("should return original text when text is empty", () => {
+    it('should return original text when text is empty', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
-        variables: [{ key: "key", value: "value", enabled: true }],
+        id: '1',
+        name: 'Test',
+        variables: [{ key: 'key', value: 'value', enabled: true }],
       };
-      const result = substituteVariables("", env);
-      expect(result).toBe("");
+      const result = substituteVariables('', env);
+      expect(result).toBe('');
     });
 
-    it("should substitute enabled variables", () => {
+    it('should substitute enabled variables', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
-        variables: [{ key: "name", value: "World", enabled: true }],
+        id: '1',
+        name: 'Test',
+        variables: [{ key: 'name', value: 'World', enabled: true }],
       };
-      const result = substituteVariables("Hello {{name}}!", env);
-      expect(result).toBe("Hello World!");
+      const result = substituteVariables('Hello {{name}}!', env);
+      expect(result).toBe('Hello World!');
     });
 
-    it("should not substitute disabled variables", () => {
+    it('should not substitute disabled variables', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
-        variables: [{ key: "name", value: "World", enabled: false }],
+        id: '1',
+        name: 'Test',
+        variables: [{ key: 'name', value: 'World', enabled: false }],
       };
-      const result = substituteVariables("Hello {{name}}!", env);
-      expect(result).toBe("Hello {{name}}!");
+      const result = substituteVariables('Hello {{name}}!', env);
+      expect(result).toBe('Hello {{name}}!');
     });
 
-    it("should substitute multiple variables", () => {
+    it('should substitute multiple variables', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
+        id: '1',
+        name: 'Test',
         variables: [
-          { key: "firstName", value: "John", enabled: true },
-          { key: "lastName", value: "Doe", enabled: true },
+          { key: 'firstName', value: 'John', enabled: true },
+          { key: 'lastName', value: 'Doe', enabled: true },
         ],
       };
-      const result = substituteVariables(
-        "{{firstName}} {{lastName}}",
-        env
-      );
-      expect(result).toBe("John Doe");
+      const result = substituteVariables('{{firstName}} {{lastName}}', env);
+      expect(result).toBe('John Doe');
     });
 
-    it("should substitute all occurrences of a variable", () => {
+    it('should substitute all occurrences of a variable', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
-        variables: [{ key: "repeat", value: "X", enabled: true }],
+        id: '1',
+        name: 'Test',
+        variables: [{ key: 'repeat', value: 'X', enabled: true }],
       };
-      const result = substituteVariables(
-        "{{repeat}} {{repeat}} {{repeat}}",
-        env
-      );
-      expect(result).toBe("X X X");
+      const result = substituteVariables('{{repeat}} {{repeat}} {{repeat}}', env);
+      expect(result).toBe('X X X');
     });
 
-    it("should handle empty variable values", () => {
+    it('should handle empty variable values', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
-        variables: [{ key: "empty", value: "", enabled: true }],
+        id: '1',
+        name: 'Test',
+        variables: [{ key: 'empty', value: '', enabled: true }],
       };
-      const result = substituteVariables("Value: {{empty}}", env);
-      expect(result).toBe("Value: ");
+      const result = substituteVariables('Value: {{empty}}', env);
+      expect(result).toBe('Value: ');
     });
 
-    it("should sanitize variable values by removing < and >", () => {
+    it('should sanitize variable values by removing < and >', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
+        id: '1',
+        name: 'Test',
         variables: [
-          { key: "xss", value: "<script>alert('xss')</script>", enabled: true },
-          { key: "html", value: "<div>content</div>", enabled: true },
+          { key: 'xss', value: "<script>alert('xss')</script>", enabled: true },
+          { key: 'html', value: '<div>content</div>', enabled: true },
         ],
       };
-      const result = substituteVariables("{{xss}} {{html}}", env);
+      const result = substituteVariables('{{xss}} {{html}}', env);
       expect(result).toBe("scriptalert('xss')/script divcontent/div");
     });
 
-    it("should escape special regex characters in variable keys", () => {
+    it('should escape special regex characters in variable keys', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
-        variables: [{ key: "user.name", value: "John", enabled: true }],
+        id: '1',
+        name: 'Test',
+        variables: [{ key: 'user.name', value: 'John', enabled: true }],
       };
-      const result = substituteVariables("Hello {{user.name}}!", env);
-      expect(result).toBe("Hello John!");
+      const result = substituteVariables('Hello {{user.name}}!', env);
+      expect(result).toBe('Hello John!');
     });
   });
 
-  describe("buildAuthHeaders", () => {
-    it("should return empty headers for None auth type", () => {
-      const auth: AuthConfig = { type: "None" };
+  describe('buildAuthHeaders', () => {
+    it('should return empty headers for None auth type', () => {
+      const auth: AuthConfig = { type: 'None' };
       const result = buildAuthHeaders(auth);
       expect(result).toEqual([]);
     });
 
-    it("should build Basic auth headers", () => {
+    it('should build Basic auth headers', () => {
       const auth: AuthConfig = {
-        type: "Basic",
-        username: "user",
-        password: "pass",
+        type: 'Basic',
+        username: 'user',
+        password: 'pass',
       };
       const result = buildAuthHeaders(auth);
-      const authHeader = result.find(([k]) => k === "Authorization");
+      const authHeader = result.find(([k]) => k === 'Authorization');
       expect(authHeader).toBeDefined();
       expect(authHeader![1]).toMatch(/^Basic /);
     });
 
-    it("should use URL-safe encoding for Basic auth credentials", () => {
+    it('should use URL-safe encoding for Basic auth credentials', () => {
       const auth: AuthConfig = {
-        type: "Basic",
-        username: "user@domain.com",
-        password: "pass:word/space",
+        type: 'Basic',
+        username: 'user@domain.com',
+        password: 'pass:word/space',
       };
       const result = buildAuthHeaders(auth);
-      const authHeader = result.find(([k]) => k === "Authorization");
+      const authHeader = result.find(([k]) => k === 'Authorization');
       expect(authHeader).toBeDefined();
 
       // The credentials should be properly encoded
-      const credentials = authHeader![1].replace("Basic ", "");
+      const credentials = authHeader![1].replace('Basic ', '');
       const decoded = atob(credentials);
-      expect(decoded).toContain("user%40domain.com");
-      expect(decoded).toContain("pass%3Aword%2Fspace");
+      expect(decoded).toContain('user%40domain.com');
+      expect(decoded).toContain('pass%3Aword%2Fspace');
     });
 
-    it("should build Bearer auth headers", () => {
+    it('should build Bearer auth headers', () => {
       const auth: AuthConfig = {
-        type: "Bearer",
-        token: "my-token",
+        type: 'Bearer',
+        token: 'my-token',
       };
       const result = buildAuthHeaders(auth);
-      expect(result).toEqual([["Authorization", "Bearer my-token"]]);
+      expect(result).toEqual([['Authorization', 'Bearer my-token']]);
     });
 
-    it("should build Custom auth headers", () => {
+    it('should build Custom auth headers', () => {
       const auth: AuthConfig = {
-        type: "Custom",
-        headerName: "X-Custom-Auth",
-        headerValue: "custom-value",
+        type: 'Custom',
+        headerName: 'X-Custom-Auth',
+        headerValue: 'custom-value',
       };
       const result = buildAuthHeaders(auth);
-      expect(result).toEqual([["X-Custom-Auth", "custom-value"]]);
+      expect(result).toEqual([['X-Custom-Auth', 'custom-value']]);
     });
 
-    it("should substitute variables in Basic auth", () => {
+    it('should substitute variables in Basic auth', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
-        variables: [{ key: "token", value: "my-token", enabled: true }],
+        id: '1',
+        name: 'Test',
+        variables: [{ key: 'token', value: 'my-token', enabled: true }],
       };
       const auth: AuthConfig = {
-        type: "Basic",
-        username: "{{token}}",
-        password: "pass",
+        type: 'Basic',
+        username: '{{token}}',
+        password: 'pass',
       };
       const result = buildAuthHeaders(auth, env);
-      expect(result.find(([k]) => k === "Authorization")).toBeDefined();
+      expect(result.find(([k]) => k === 'Authorization')).toBeDefined();
     });
 
-    it("should substitute variables in Bearer auth", () => {
+    it('should substitute variables in Bearer auth', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
-        variables: [{ key: "token", value: "my-token", enabled: true }],
+        id: '1',
+        name: 'Test',
+        variables: [{ key: 'token', value: 'my-token', enabled: true }],
       };
       const auth: AuthConfig = {
-        type: "Bearer",
-        token: "{{token}}",
+        type: 'Bearer',
+        token: '{{token}}',
       };
       const result = buildAuthHeaders(auth, env);
-      expect(result).toEqual([["Authorization", "Bearer my-token"]]);
+      expect(result).toEqual([['Authorization', 'Bearer my-token']]);
     });
 
-    it("should substitute variables in Custom auth", () => {
+    it('should substitute variables in Custom auth', () => {
       const env: Environment = {
-        id: "1",
-        name: "Test",
+        id: '1',
+        name: 'Test',
         variables: [
-          { key: "headerName", value: "X-Auth", enabled: true },
-          { key: "headerValue", value: "value123", enabled: true },
+          { key: 'headerName', value: 'X-Auth', enabled: true },
+          { key: 'headerValue', value: 'value123', enabled: true },
         ],
       };
       const auth: AuthConfig = {
-        type: "Custom",
-        headerName: "{{headerName}}",
-        headerValue: "{{headerValue}}",
+        type: 'Custom',
+        headerName: '{{headerName}}',
+        headerValue: '{{headerValue}}',
       };
       const result = buildAuthHeaders(auth, env);
-      expect(result).toEqual([["X-Auth", "value123"]]);
+      expect(result).toEqual([['X-Auth', 'value123']]);
     });
   });
 
-  describe("formatError", () => {
-    it("should format DNS resolution errors", () => {
-      const error = new Error("Failed to resolve hostname");
+  describe('formatError', () => {
+    it('should format DNS resolution errors', () => {
+      const error = new Error('Failed to resolve hostname');
       const result = formatError(error);
-      expect(result).toContain("Domain not found");
+      expect(result).toContain('Domain not found');
     });
 
-    it("should format invalid URL errors", () => {
-      const error = new Error("Invalid URL");
+    it('should format invalid URL errors', () => {
+      const error = new Error('Invalid URL');
       const result = formatError(error);
-      expect(result).toContain("Invalid URL");
+      expect(result).toContain('Invalid URL');
     });
 
-    it("should format connection errors", () => {
-      const error = new Error("Connection timeout");
+    it('should format connection errors', () => {
+      const error = new Error('Connection timeout');
       const result = formatError(error);
-      expect(result).toContain("Connection error");
+      expect(result).toContain('Connection error');
     });
 
-    it("should format SSL/TLS errors", () => {
-      const error = new Error("SSL certificate error");
+    it('should format SSL/TLS errors', () => {
+      const error = new Error('SSL certificate error');
       const result = formatError(error);
-      expect(result).toContain("SSL/TLS error");
+      expect(result).toContain('SSL/TLS error');
     });
 
-    it("should return descriptive error messages", () => {
-      const error = new Error("Some other error");
+    it('should return descriptive error messages', () => {
+      const error = new Error('Some other error');
       const result = formatError(error);
-      expect(result).toBe("Some other error");
+      expect(result).toBe('Some other error');
     });
 
-    it("should handle string errors", () => {
-      const result = formatError("String error");
-      expect(result).toBe("String error");
+    it('should handle string errors', () => {
+      const result = formatError('String error');
+      expect(result).toBe('String error');
     });
 
-    it("should handle unknown errors", () => {
+    it('should handle unknown errors', () => {
       const result = formatError(null);
-      expect(result).toBe("Unknown error");
+      expect(result).toBe('Unknown error');
     });
 
-    it("should handle empty error objects", () => {
+    it('should handle empty error objects', () => {
       const result = formatError({});
-      expect(result).toBe("Unknown error");
+      expect(result).toBe('Unknown error');
+    });
+  });
+
+  describe('executeHttpRequest', () => {
+    it('should execute request directly without retry on 500 by default', async () => {
+      const { fetch } = await import('@tauri-apps/plugin-http');
+      const mockFetch = vi.mocked(fetch);
+      mockFetch.mockReset();
+      mockFetch.mockResolvedValueOnce({
+        status: 500,
+        statusText: 'Internal Server Error',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        text: async () => JSON.stringify({ error: 'crash' }),
+      } as unknown as Response);
+
+      const { executeHttpRequest } = await import('../httpClient');
+      const res = await executeHttpRequest('GET', 'https://api.example.com/test', [], '', {
+        type: 'None',
+      });
+
+      expect(res.status).toBe(500);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
   });
 });

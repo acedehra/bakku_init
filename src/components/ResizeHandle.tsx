@@ -1,11 +1,11 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from 'react';
 
 interface ResizeHandleProps {
   onResize: (deltaX: number) => void;
-  orientation?: "vertical" | "horizontal";
+  orientation?: 'vertical' | 'horizontal';
 }
 
-export function ResizeHandle({ onResize, orientation = "vertical" }: ResizeHandleProps) {
+export function ResizeHandle({ onResize, orientation = 'vertical' }: ResizeHandleProps) {
   const isResizing = useRef(false);
   const startX = useRef(0);
   const onResizeRef = useRef(onResize);
@@ -26,25 +26,25 @@ export function ResizeHandle({ onResize, orientation = "vertical" }: ResizeHandl
     const handleMouseUp = () => {
       if (!isResizing.current) return;
       isResizing.current = false;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
 
     // Always attach listeners, they check the ref internally
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     isResizing.current = true;
     startX.current = e.clientX;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
     e.preventDefault();
     e.stopPropagation();
   }, []);
@@ -53,9 +53,9 @@ export function ResizeHandle({ onResize, orientation = "vertical" }: ResizeHandl
     <div
       onMouseDown={handleMouseDown}
       className={`${
-        orientation === "vertical"
-          ? "w-1 cursor-col-resize hover:bg-primary/50"
-          : "h-1 cursor-row-resize hover:bg-primary/50"
+        orientation === 'vertical'
+          ? 'w-1 cursor-col-resize hover:bg-primary/50'
+          : 'h-1 cursor-row-resize hover:bg-primary/50'
       } bg-border transition-colors`}
       role="separator"
       aria-orientation={orientation}

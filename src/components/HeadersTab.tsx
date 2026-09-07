@@ -1,6 +1,6 @@
-import { memo } from "react";
-import { KVEntry, Environment } from "../types";
-import GenericKVTab, { GenericKVTabConfig } from "./GenericKVTab";
+import { memo } from 'react';
+import { KVEntry, Environment } from '../types';
+import GenericKVTab, { GenericKVTabConfig } from './GenericKVTab';
 
 interface HeadersTabProps {
   headers: KVEntry[];
@@ -9,18 +9,14 @@ interface HeadersTabProps {
 }
 
 const headersConfig: GenericKVTabConfig = {
-  keyPlaceholder: "Header name",
-  valuePlaceholder: "Header value",
-  deleteAriaLabel: "Delete header",
-  deleteTitle: "Delete header",
-  addButtonText: "+ Add Header",
+  keyPlaceholder: 'Header name',
+  valuePlaceholder: 'Header value',
+  deleteAriaLabel: 'Delete header',
+  deleteTitle: 'Delete header',
+  addButtonText: '+ Add Header',
 };
 
-export function HeadersTab({
-  headers,
-  onHeadersChange,
-  activeEnv,
-}: HeadersTabProps) {
+export function HeadersTab({ headers, onHeadersChange, activeEnv }: HeadersTabProps) {
   return (
     <GenericKVTab
       entries={headers}

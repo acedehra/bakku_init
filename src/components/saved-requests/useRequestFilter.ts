@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { SavedRequest, RequestFolder } from "../../types";
+import { useMemo } from 'react';
+import { SavedRequest, RequestFolder } from '../../types';
 
 export interface FilteredData {
   folders: RequestFolder[];
@@ -25,14 +25,10 @@ export function useRequestFilter(
     );
 
     const folderIdsWithMatches = new Set(
-      filteredRequests
-        .map((req) => req.folderId)
-        .filter(Boolean) as string[]
+      filteredRequests.map((req) => req.folderId).filter(Boolean) as string[]
     );
     const filteredFolders = folders.filter(
-      (folder) =>
-        folder.name.toLowerCase().includes(query) ||
-        folderIdsWithMatches.has(folder.id)
+      (folder) => folder.name.toLowerCase().includes(query) || folderIdsWithMatches.has(folder.id)
     );
 
     return { folders: filteredFolders, requests: filteredRequests };

@@ -1,5 +1,5 @@
-import { useDndContext } from "@dnd-kit/core";
-import { SavedRequest, HttpMethod } from "../../types";
+import { useDndContext } from '@dnd-kit/core';
+import { SavedRequest, HttpMethod } from '../../types';
 
 interface DragOverlayProps {
   requests: SavedRequest[];
@@ -22,9 +22,7 @@ export function DragOverlay({ requests, getMethodColor }: DragOverlayProps) {
         <span className={`text-xs font-medium ${getMethodColor(request.method)} w-10 shrink-0`}>
           {request.method}
         </span>
-        <span className="text-xs font-medium text-foreground">
-          {request.name}
-        </span>
+        <span className="text-xs font-medium text-foreground">{request.name}</span>
       </div>
     </div>
   );

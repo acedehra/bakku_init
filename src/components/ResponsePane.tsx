@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { ResponseData } from "../types";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useState } from 'react';
+import { ResponseData } from '../types';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface ResponsePaneProps {
   response: ResponseData | null;
@@ -9,14 +9,10 @@ interface ResponsePaneProps {
   loading: boolean;
 }
 
-type ResponseTab = "Pretty" | "Headers" | "Info";
+type ResponseTab = 'Pretty' | 'Headers' | 'Info';
 
-export function ResponsePane({
-  response,
-  error,
-  loading,
-}: ResponsePaneProps) {
-  const [activeTab, setActiveTab] = useState<ResponseTab>("Pretty");
+export function ResponsePane({ response, error, loading }: ResponsePaneProps) {
+  const [activeTab, setActiveTab] = useState<ResponseTab>('Pretty');
 
   const formatSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -30,32 +26,24 @@ export function ResponsePane({
   };
 
   const getStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return "text-green-500";
-    if (status >= 300 && status < 400) return "text-yellow-500";
-    if (status >= 400) return "text-red-500";
-    return "text-muted-foreground";
+    if (status >= 200 && status < 300) return 'text-green-500';
+    if (status >= 300 && status < 400) return 'text-yellow-500';
+    if (status >= 400) return 'text-red-500';
+    return 'text-muted-foreground';
   };
 
-  const tabs: ResponseTab[] = ["Pretty", "Headers", "Info"];
+  const tabs: ResponseTab[] = ['Pretty', 'Headers', 'Info'];
 
   return (
     <div className="w-full h-screen flex flex-col bg-background border-l border-border">
       {response && (
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-4 mb-4">
-            <span
-              className={`text-lg font-semibold ${getStatusColor(
-                response.status
-              )}`}
-            >
+            <span className={`text-lg font-semibold ${getStatusColor(response.status)}`}>
               {response.status} {response.statusText}
             </span>
-            <span className="text-sm text-muted-foreground">
-              {formatTime(response.timing)}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {formatSize(response.size)}
-            </span>
+            <span className="text-sm text-muted-foreground">{formatTime(response.timing)}</span>
+            <span className="text-sm text-muted-foreground">{formatSize(response.size)}</span>
           </div>
           <div className="flex gap-1 border-b border-border">
             {tabs.map((tab) => (
@@ -64,8 +52,8 @@ export function ResponsePane({
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {tab}
@@ -80,11 +68,7 @@ export function ResponsePane({
             Sending request...
           </div>
         )}
-        {error && (
-          <div className="text-sm text-destructive whitespace-pre-wrap">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-sm text-destructive whitespace-pre-wrap">{error}</div>}
         {!loading && !error && !response && (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             Send a request to see the response here.
@@ -92,18 +76,20 @@ export function ResponsePane({
         )}
         {!loading && !error && response && (
           <>
-            {activeTab === "Pretty" && (
+            {activeTab === 'Pretty' && (
               <div className="text-xs font-mono">
                 {response.body ? (
                   Object.entries(response.headers).some(
-                    ([key, value]) => key.toLowerCase() === "content-type" && String(value).includes("application/json")
+                    ([key, value]) =>
+                      key.toLowerCase() === 'content-type' &&
+                      String(value).includes('application/json')
                   ) ? (
                     <SyntaxHighlighter
                       language="json"
                       style={vscDarkPlus}
                       customStyle={{
                         margin: 0,
-                        background: "transparent",
+                        background: 'transparent',
                         padding: 0,
                       }}
                       wrapLongLines={true}
@@ -118,22 +104,20 @@ export function ResponsePane({
                 )}
               </div>
             )}
-            {activeTab === "Headers" && (
+            {activeTab === 'Headers' && (
               <div className="space-y-2">
                 {Object.entries(response.headers).map(([key, value]) => (
                   <div key={key} className="text-sm">
-                    <span className="font-medium">{key}:</span>{" "}
+                    <span className="font-medium">{key}:</span>{' '}
                     <span className="text-muted-foreground">{value}</span>
                   </div>
                 ))}
                 {Object.keys(response.headers).length === 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    No headers
-                  </div>
+                  <div className="text-sm text-muted-foreground">No headers</div>
                 )}
               </div>
             )}
-            {activeTab === "Info" && (
+            {activeTab === 'Info' && (
               <div className="space-y-4 text-sm">
                 <div>
                   <div className="font-medium mb-1">Status Code</div>
@@ -141,21 +125,15 @@ export function ResponsePane({
                 </div>
                 <div>
                   <div className="font-medium mb-1">Status Text</div>
-                  <div className="text-muted-foreground">
-                    {response.statusText}
-                  </div>
+                  <div className="text-muted-foreground">{response.statusText}</div>
                 </div>
                 <div>
                   <div className="font-medium mb-1">Response Time</div>
-                  <div className="text-muted-foreground">
-                    {formatTime(response.timing)}
-                  </div>
+                  <div className="text-muted-foreground">{formatTime(response.timing)}</div>
                 </div>
                 <div>
                   <div className="font-medium mb-1">Response Size</div>
-                  <div className="text-muted-foreground">
-                    {formatSize(response.size)}
-                  </div>
+                  <div className="text-muted-foreground">{formatSize(response.size)}</div>
                 </div>
               </div>
             )}

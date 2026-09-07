@@ -1,8 +1,8 @@
-import React, { useCallback, memo } from "react";
-import { useDraggable } from "@dnd-kit/core";
-import { Pencil, Trash2 } from "lucide-react";
-import { SavedRequest, HttpMethod } from "../../types";
-import { RightClickMenu } from "../ui/RightClickMenu";
+import React, { useCallback, memo } from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import { Pencil, Trash2 } from 'lucide-react';
+import { SavedRequest, HttpMethod } from '../../types';
+import { RightClickMenu } from '../ui/RightClickMenu';
 
 interface RequestItemProps {
   request: SavedRequest;
@@ -78,8 +78,8 @@ function RequestItem({
         {...listeners}
         onClick={handleClick}
         className={`flex items-center gap-2 p-2 mb-1 rounded-md cursor-pointer transition-colors group ${
-          selected ? "bg-accent text-accent-foreground" : "hover:bg-accent/30"
-        } ${isDragging ? "opacity-50" : ""}`}
+          selected ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/30'
+        } ${isDragging ? 'opacity-50' : ''}`}
       >
         <span className={`text-xs font-medium ${getMethodColor(request.method)} w-10 shrink-0`}>
           {request.method}

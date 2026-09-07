@@ -1,9 +1,9 @@
-import { X, Settings } from "lucide-react";
-import { Environment } from "../types";
-import { useEnvironmentManager } from "./environment-manager/useEnvironmentManager";
-import EnvironmentList from "./environment-manager/EnvironmentList";
-import VariableEditor from "./environment-manager/VariableEditor";
-import EmptyState from "./environment-manager/EmptyState";
+import { X, Settings } from 'lucide-react';
+import { Environment } from '../types';
+import { useEnvironmentManager } from './environment-manager/useEnvironmentManager';
+import EnvironmentList from './environment-manager/EnvironmentList';
+import VariableEditor from './environment-manager/VariableEditor';
+import EmptyState from './environment-manager/EmptyState';
 
 interface EnvironmentManagerProps {
   environments: Environment[];
@@ -67,7 +67,9 @@ export function EnvironmentManager({
               <VariableEditor
                 activeEnv={activeEnv}
                 onAddVariable={() => handleAddVariable(activeEnv, onUpdate)}
-                onUpdateVariable={(index, updates) => updateVariable(activeEnv, index, updates, onUpdate)}
+                onUpdateVariable={(index, updates) =>
+                  updateVariable(activeEnv, index, updates, onUpdate)
+                }
                 onDeleteVariable={(index) => deleteVariable(activeEnv, index, onUpdate)}
               />
             ) : (

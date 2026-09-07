@@ -1,7 +1,7 @@
-import { memo } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { Environment } from "../../types";
-import { Button } from "../ui/button";
+import { memo } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { Environment } from '../../types';
+import { Button } from '../ui/button';
 
 interface EnvironmentListProps {
   environments: Environment[];
@@ -31,7 +31,7 @@ function EnvironmentList({
     onDelete(envId);
     if (selectedEnvId === envId) {
       const nextEnv = environments.find((item) => item.id !== envId);
-      onSelectedEnvChange(nextEnv?.id || "");
+      onSelectedEnvChange(nextEnv?.id || '');
     }
   };
 
@@ -44,8 +44,8 @@ function EnvironmentList({
             onClick={() => onSelectedEnvChange(env.id)}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-all ${
               selectedEnvId === env.id
-                ? "bg-primary text-primary-foreground shadow-sm scale-[1.02]"
-                : "hover:bg-accent/50 text-muted-foreground"
+                ? 'bg-primary text-primary-foreground shadow-sm scale-[1.02]'
+                : 'hover:bg-accent/50 text-muted-foreground'
             }`}
           >
             <span className="truncate">{env.name}</span>
@@ -65,16 +65,12 @@ function EnvironmentList({
               type="text"
               value={newEnvName}
               onChange={(e) => onNewEnvNameChange(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && onAddEnv()}
+              onKeyDown={(e) => e.key === 'Enter' && onAddEnv()}
               placeholder="Env name..."
               className="w-full h-8 px-2 text-xs rounded border border-input bg-background focus:ring-1 focus:ring-primary"
             />
             <div className="flex gap-1">
-              <Button
-                size="sm"
-                className="h-7 text-[10px] flex-1"
-                onClick={onAddEnv}
-              >
+              <Button size="sm" className="h-7 text-[10px] flex-1" onClick={onAddEnv}>
                 Add
               </Button>
               <Button

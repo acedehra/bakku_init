@@ -1,6 +1,6 @@
-import { memo } from "react";
-import { KVEntry, Environment } from "../types";
-import GenericKVTab, { GenericKVTabConfig } from "./GenericKVTab";
+import { memo } from 'react';
+import { KVEntry, Environment } from '../types';
+import GenericKVTab, { GenericKVTabConfig } from './GenericKVTab';
 
 interface ParamsTabProps {
   paramEntries: KVEntry[];
@@ -9,18 +9,14 @@ interface ParamsTabProps {
 }
 
 const paramsConfig: GenericKVTabConfig = {
-  keyPlaceholder: "Key",
-  valuePlaceholder: "Value",
-  deleteAriaLabel: "Delete param",
-  deleteTitle: "Delete param",
-  addButtonText: "+ Add Param",
+  keyPlaceholder: 'Key',
+  valuePlaceholder: 'Value',
+  deleteAriaLabel: 'Delete param',
+  deleteTitle: 'Delete param',
+  addButtonText: '+ Add Param',
 };
 
-export function ParamsTab({
-  paramEntries,
-  onParamEntriesChange,
-  activeEnv,
-}: ParamsTabProps) {
+export function ParamsTab({ paramEntries, onParamEntriesChange, activeEnv }: ParamsTabProps) {
   return (
     <GenericKVTab
       entries={paramEntries}

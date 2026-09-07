@@ -1,10 +1,10 @@
-import { memo } from "react";
-import * as ContextMenu from "@radix-ui/react-context-menu";
-import { useDroppable } from "@dnd-kit/core";
-import { Pencil, Trash2, Folder, FolderOpen, ChevronRight, ChevronDown } from "lucide-react";
-import { RequestFolder, SavedRequest, HttpMethod } from "../../types";
-import RequestItem from "./RequestItem";
-import { RightClickMenu } from "../ui/RightClickMenu";
+import { memo } from 'react';
+import * as ContextMenu from '@radix-ui/react-context-menu';
+import { useDroppable } from '@dnd-kit/core';
+import { Pencil, Trash2, Folder, FolderOpen, ChevronRight, ChevronDown } from 'lucide-react';
+import { RequestFolder, SavedRequest, HttpMethod } from '../../types';
+import RequestItem from './RequestItem';
+import { RightClickMenu } from '../ui/RightClickMenu';
 
 interface FolderItemProps {
   folder: RequestFolder;
@@ -67,7 +67,8 @@ function FolderItem({
             id: 'rename',
             label: 'Rename',
             icon: <Pencil className="w-4 h-4" />,
-            onSelect: () => onStartRenameFolder(folder, { stopPropagation: () => {} } as React.MouseEvent),
+            onSelect: () =>
+              onStartRenameFolder(folder, { stopPropagation: () => {} } as React.MouseEvent),
           },
           {
             id: 'add-request',
@@ -80,7 +81,8 @@ function FolderItem({
             label: 'Delete',
             icon: <Trash2 className="w-4 h-4" />,
             destructive: true,
-            onSelect: () => onDeleteFolder(folder.id, { stopPropagation: () => {} } as React.MouseEvent),
+            onSelect: () =>
+              onDeleteFolder(folder.id, { stopPropagation: () => {} } as React.MouseEvent),
           },
         ]}
         disabled={renamingFolderId === folder.id}
@@ -88,7 +90,7 @@ function FolderItem({
         <div
           ref={setNodeRef}
           className={`flex items-center gap-1 p-1 rounded-md hover:bg-accent/30 cursor-pointer group transition-colors ${
-            isOver ? "bg-accent/60" : ""
+            isOver ? 'bg-accent/60' : ''
           }`}
           onClick={() => onToggle(folder.id)}
         >

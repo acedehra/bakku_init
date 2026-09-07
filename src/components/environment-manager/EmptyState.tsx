@@ -1,5 +1,5 @@
-import { memo } from "react";
-import { Settings } from "lucide-react";
+import { memo } from 'react';
+import { Settings } from 'lucide-react';
 
 function EmptyState() {
   return (
@@ -8,7 +8,9 @@ function EmptyState() {
         <Settings size={40} className="opacity-20" />
       </div>
       <h3 className="text-lg font-medium text-foreground mb-2">No Environment Selected</h3>
-      <p className="max-w-xs">Create or select an environment from the sidebar to manage its variables.</p>
+      <p className="max-w-xs">
+        Create or select an environment from the sidebar to manage its variables.
+      </p>
     </div>
   );
 }
