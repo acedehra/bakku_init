@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { Environment, EnvironmentVariable } from "../../types";
+import { useState, useCallback } from 'react';
+import { Environment, EnvironmentVariable } from '../../types';
 
 interface EnvironmentManagerState {
   selectedEnvId: string | null;
@@ -11,7 +11,7 @@ export function useEnvironmentManager(initialEnvironments: Environment[]) {
   const [state, setState] = useState<EnvironmentManagerState>({
     selectedEnvId: initialEnvironments.length > 0 ? initialEnvironments[0].id : null,
     isAddingEnv: false,
-    newEnvName: "",
+    newEnvName: '',
   });
 
   const setSelectedEnvId = useCallback((id: string | null) => {
@@ -31,7 +31,7 @@ export function useEnvironmentManager(initialEnvironments: Environment[]) {
       if (state.newEnvName.trim()) {
         const newEnv = onAdd(state.newEnvName);
         setSelectedEnvId(newEnv.id);
-        setNewEnvName("");
+        setNewEnvName('');
         setIsAddingEnv(false);
       }
     },
@@ -42,8 +42,8 @@ export function useEnvironmentManager(initialEnvironments: Environment[]) {
     (activeEnv: Environment | undefined, onUpdate: (env: Environment) => void) => {
       if (activeEnv) {
         const newVar: EnvironmentVariable = {
-          key: "",
-          value: "",
+          key: '',
+          value: '',
           enabled: true,
         };
         onUpdate({
@@ -72,11 +72,7 @@ export function useEnvironmentManager(initialEnvironments: Environment[]) {
   );
 
   const deleteVariable = useCallback(
-    (
-      activeEnv: Environment | undefined,
-      index: number,
-      onUpdate: (env: Environment) => void
-    ) => {
+    (activeEnv: Environment | undefined, index: number, onUpdate: (env: Environment) => void) => {
       if (activeEnv) {
         const newVariables = activeEnv.variables.filter((_, i) => i !== index);
         onUpdate({ ...activeEnv, variables: newVariables });

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { isTauri } from "@tauri-apps/api/core";
-import * as savedLibrary from "../api/savedLibrary";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { isTauri } from '@tauri-apps/api/core';
+import * as savedLibrary from '../api/savedLibrary';
 import {
   SavedRequest,
   RequestFolder,
@@ -9,9 +9,9 @@ import {
   ResponseData,
   RequestHistoryItem,
   KVEntry,
-} from "../types";
-import { SAVED_REQUESTS_STORAGE_KEY } from "../constants";
-import { HISTORY_STORAGE_KEY } from "../constants";
+} from '../types';
+import { SAVED_REQUESTS_STORAGE_KEY } from '../constants';
+import { HISTORY_STORAGE_KEY } from '../constants';
 
 /**
  * Legacy request format from localStorage before migration
@@ -29,7 +29,10 @@ interface LegacyRequestFormat {
   updatedAt?: number;
 }
 
-function buildHistoryMigrationPayload(): { folders: RequestFolder[]; requests: SavedRequest[] } | null {
+function buildHistoryMigrationPayload(): {
+  folders: RequestFolder[];
+  requests: SavedRequest[];
+} | null {
   try {
     const storedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
     if (!storedHistory) return null;
@@ -38,7 +41,7 @@ function buildHistoryMigrationPayload(): { folders: RequestFolder[]; requests: S
 
     const folder: RequestFolder = {
       id: `folder-${Date.now()}`,
-      name: "Migrated History",
+      name: 'Migrated History',
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -56,7 +59,7 @@ function buildHistoryMigrationPayload(): { folders: RequestFolder[]; requests: S
           : Object.entries(item.requestData.headers || {}).map(([key, value]) => ({
               id: crypto.randomUUID(),
               key,
-              value: String(value || ""),
+              value: String(value || ''),
               enabled: true,
             })),
         body: item.requestData.body,
@@ -76,7 +79,10 @@ async function tryMigrateLocalStorageToTauri(): Promise<boolean> {
   try {
     const stored = localStorage.getItem(SAVED_REQUESTS_STORAGE_KEY);
     if (stored) {
-      const data = JSON.parse(stored) as { requests: LegacyRequestFormat[]; folders: RequestFolder[] };
+      const data = JSON.parse(stored) as {
+        requests: LegacyRequestFormat[];
+        folders: RequestFolder[];
+      };
       const folders = data.folders || [];
       const requests = (data.requests || []).map((r) => ({
         ...r,
@@ -89,7 +95,7 @@ async function tryMigrateLocalStorageToTauri(): Promise<boolean> {
               enabled: true,
             })),
       }));
-      
+
       if (folders.length > 0 || requests.length > 0) {
         await savedLibrary.importLibrary(folders, requests as SavedRequest[]);
         localStorage.removeItem(SAVED_REQUESTS_STORAGE_KEY);
@@ -97,7 +103,7 @@ async function tryMigrateLocalStorageToTauri(): Promise<boolean> {
       }
     }
   } catch (err) {
-    console.error("Failed to migrate saved requests from localStorage to SQLite", err);
+    console.error('Failed to migrate saved requests from localStorage to SQLite', err);
   }
 
   const fromHistory = buildHistoryMigrationPayload();
@@ -106,7 +112,7 @@ async function tryMigrateLocalStorageToTauri(): Promise<boolean> {
       await savedLibrary.importLibrary(fromHistory.folders, fromHistory.requests);
       return true;
     } catch (err) {
-      console.error("Failed to migrate history to SQLite", err);
+      console.error('Failed to migrate history to SQLite', err);
     }
   }
   return false;
@@ -141,7 +147,7 @@ export function useSavedRequests() {
           setSavedRequests(lib.requests);
         }
       } catch (err) {
-        console.error("Failed to load saved library from SQLite", err);
+        console.error('Failed to load saved library from SQLite', err);
       } finally {
         if (!cancelled) setLibraryReady(true);
       }
@@ -162,7 +168,7 @@ export function useSavedRequests() {
           }
         }
       } catch (err) {
-        console.error("Failed to load saved requests from localStorage", err);
+        console.error('Failed to load saved requests from localStorage', err);
       } finally {
         setLibraryReady(true);
       }
@@ -187,22 +193,23 @@ export function useSavedRequests() {
         JSON.stringify({ requests: savedRequests, folders })
       );
     } catch (err) {
-      console.error("Failed to save saved requests to localStorage", err);
+      console.error('Failed to save saved requests to localStorage', err);
     }
   }, [savedRequests, folders, tauriMode]);
 
   const createRequest = async (
     name: string,
-    folderId: string | null = null
+    folderId: string | null = null,
+    initialData?: Partial<SavedRequest>
   ): Promise<SavedRequest> => {
     const newRequest: SavedRequest = {
       id: `saved-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       name,
-      method: "GET",
-      url: "",
-      headers: [],
-      body: "",
-      auth: { type: "None" },
+      method: initialData?.method ?? 'GET',
+      url: initialData?.url ?? '',
+      headers: initialData?.headers ?? [],
+      body: initialData?.body ?? '',
+      auth: initialData?.auth ?? { type: 'None' },
       folderId,
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -222,9 +229,7 @@ export function useSavedRequests() {
       await savedLibrary.updateRequest(next);
       await refreshFromDb();
     } else {
-      setSavedRequests((prev) =>
-        prev.map((req) => (req.id === next.id ? next : req))
-      );
+      setSavedRequests((prev) => prev.map((req) => (req.id === next.id ? next : req)));
     }
   };
 
@@ -259,9 +264,7 @@ export function useSavedRequests() {
       await savedLibrary.updateFolder(next);
       await refreshFromDb();
     } else {
-      setFolders((prev) =>
-        prev.map((folder) => (folder.id === next.id ? next : folder))
-      );
+      setFolders((prev) => prev.map((folder) => (folder.id === next.id ? next : folder)));
     }
   };
 
@@ -307,11 +310,29 @@ export function useSavedRequests() {
       await savedLibrary.updateRequest(updated);
       await refreshFromDb();
     } else {
-      setSavedRequests((prev) =>
-        prev.map((req) => (req.id === id ? updated : req))
-      );
+      setSavedRequests((prev) => prev.map((req) => (req.id === id ? updated : req)));
     }
   };
+
+  const refreshLibrary = useCallback(async () => {
+    if (tauriMode) {
+      await refreshFromDb();
+    } else {
+      try {
+        const stored = localStorage.getItem(SAVED_REQUESTS_STORAGE_KEY);
+        if (stored) {
+          const data = JSON.parse(stored) as { requests: SavedRequest[]; folders: RequestFolder[] };
+          setSavedRequests(data.requests || []);
+          setFolders(data.folders || []);
+        } else {
+          setSavedRequests([]);
+          setFolders([]);
+        }
+      } catch (err) {
+        console.error('Failed to reload saved requests from localStorage', err);
+      }
+    }
+  }, [tauriMode, refreshFromDb]);
 
   return {
     savedRequests,
@@ -325,5 +346,6 @@ export function useSavedRequests() {
     deleteFolder,
     getRequestById,
     autoSaveRequest,
+    refreshLibrary,
   };
 }

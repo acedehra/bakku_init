@@ -1,6 +1,6 @@
-export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD";
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD';
 
-export type AuthType = "None" | "Basic" | "Bearer" | "Custom";
+export type AuthType = 'None' | 'Basic' | 'Bearer' | 'Custom';
 
 export interface AuthConfig {
   type: AuthType;
@@ -12,7 +12,7 @@ export interface AuthConfig {
 }
 
 export interface KVEntry {
-  id: string;         // stable key for React lists; uuid-ish
+  id: string; // stable key for React lists; uuid-ish
   key: string;
   value: string;
   enabled: boolean;
@@ -20,8 +20,8 @@ export interface KVEntry {
 
 export interface RequestData {
   method: HttpMethod;
-  url: string;                  // source of truth for query string
-  headers: KVEntry[];                // ordered, may repeat keys
+  url: string; // source of truth for query string
+  headers: KVEntry[]; // ordered, may repeat keys
   body: string;
   auth: AuthConfig;
 }

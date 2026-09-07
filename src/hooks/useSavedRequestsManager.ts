@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { SavedRequest, ResponseData, KVEntry, HttpMethod, AuthConfig } from "../types";
+import { useState } from 'react';
+import { SavedRequest, ResponseData, KVEntry, HttpMethod, AuthConfig } from '../types';
 
 interface UseSavedRequestsManagerResult {
   selectedSavedRequestId: string | null;

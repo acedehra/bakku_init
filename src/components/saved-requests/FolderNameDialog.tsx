@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 interface FolderNameDialogProps {
   open: boolean;
@@ -12,8 +12,8 @@ export function FolderNameDialog({
   open,
   onClose,
   onConfirm,
-  title = "Enter folder name",
-  defaultValue = "",
+  title = 'Enter folder name',
+  defaultValue = '',
 }: FolderNameDialogProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -26,12 +26,12 @@ export function FolderNameDialog({
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && open) {
+      if (e.key === 'Escape' && open) {
         onClose();
       }
     };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, [open, onClose]);
 
   if (!open) return null;
@@ -49,12 +49,12 @@ export function FolderNameDialog({
           defaultValue={defaultValue}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === 'Enter') {
               const value = e.currentTarget.value.trim();
               if (value) {
                 onConfirm(value);
               }
-            } else if (e.key === "Escape") {
+            } else if (e.key === 'Escape') {
               onClose();
             }
           }}

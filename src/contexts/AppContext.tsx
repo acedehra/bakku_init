@@ -1,6 +1,13 @@
-import { createContext, useContext, ReactNode } from "react";
-import { HttpMethod, SavedRequest, RequestFolder, AuthConfig, KVEntry, Environment } from "../types";
-import { ResponseData } from "../types";
+import { createContext, useContext, ReactNode } from 'react';
+import {
+  HttpMethod,
+  SavedRequest,
+  RequestFolder,
+  AuthConfig,
+  KVEntry,
+  Environment,
+} from '../types';
+import { ResponseData } from '../types';
 
 export interface AppState {
   // Request state
@@ -25,6 +32,8 @@ export interface AppState {
   searchQuery: string;
   expandedFolders: Set<string>;
   isEnvManagerOpen: boolean;
+  isSettingsOpen: boolean;
+  isCurlImportOpen: boolean;
 }
 
 export interface AppActions {
@@ -67,6 +76,20 @@ export interface AppActions {
   handleUpdateEnvironment: (env: Environment) => void;
   handleDeleteEnvironment: (id: string) => void;
 
+  // Settings actions
+  handleOpenSettings: () => void;
+  handleCloseSettings: () => void;
+  handleSettingsImportSuccess: () => void;
+
+  // cURL import actions
+  handleOpenCurlImport: () => void;
+  handleCloseCurlImport: () => void;
+  handleLoadCurlIntoCurrent: (parsed: import('../utils/curlParser').ParsedCurl) => void;
+  handleSaveCurlAsNewRequest: (
+    parsed: import('../utils/curlParser').ParsedCurl,
+    name: string
+  ) => Promise<void>;
+
   // UI actions
   setSearchQuery: (query: string) => void;
 }
@@ -87,14 +110,20 @@ export interface AppContextValue extends AppState, AppActions {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppContextProvider({ children, value }: { children: ReactNode; value: AppContextValue }) {
+export function AppContextProvider({
+  children,
+  value,
+}: {
+  children: ReactNode;
+  value: AppContextValue;
+}) {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useAppContext() {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error("useAppContext must be used within an AppContextProvider");
+    throw new Error('useAppContext must be used within an AppContextProvider');
   }
   return context;
 }

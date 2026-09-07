@@ -1,8 +1,8 @@
-import { memo } from "react";
-import { AuthType, Environment, AuthConfig } from "../../../types";
-import BasicAuthForm from "./BasicAuthForm";
-import BearerTokenForm from "./BearerTokenForm";
-import CustomAuthForm from "./CustomAuthForm";
+import { memo } from 'react';
+import { AuthType, Environment, AuthConfig } from '../../../types';
+import BasicAuthForm from './BasicAuthForm';
+import BearerTokenForm from './BearerTokenForm';
+import CustomAuthForm from './CustomAuthForm';
 
 interface AuthTabProps {
   auth: AuthConfig;
@@ -19,9 +19,9 @@ function AuthTab({ auth, environment, onChange }: AuthTabProps) {
           value={auth.type}
           onChange={(e) => onChange({ ...auth, type: e.target.value as AuthType })}
           className={`w-full h-10 rounded-md border text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all ${
-            auth.type !== "None"
-              ? "border-primary/50 bg-primary/5 text-primary"
-              : "border-input bg-background"
+            auth.type !== 'None'
+              ? 'border-primary/50 bg-primary/5 text-primary'
+              : 'border-input bg-background'
           }`}
         >
           <option value="None">None</option>
@@ -30,13 +30,13 @@ function AuthTab({ auth, environment, onChange }: AuthTabProps) {
           <option value="Custom">Custom Header</option>
         </select>
       </div>
-      {auth.type === "Basic" && (
+      {auth.type === 'Basic' && (
         <BasicAuthForm auth={auth} environment={environment} onChange={onChange} />
       )}
-      {auth.type === "Bearer" && (
+      {auth.type === 'Bearer' && (
         <BearerTokenForm auth={auth} environment={environment} onChange={onChange} />
       )}
-      {auth.type === "Custom" && (
+      {auth.type === 'Custom' && (
         <CustomAuthForm auth={auth} environment={environment} onChange={onChange} />
       )}
     </div>

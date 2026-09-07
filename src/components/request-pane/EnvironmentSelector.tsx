@@ -1,7 +1,7 @@
-import { memo } from "react";
-import { ChevronDown, Settings } from "lucide-react";
-import { Environment } from "../../types";
-import { Button } from "../ui/button";
+import { memo } from 'react';
+import { ChevronDown, Settings } from 'lucide-react';
+import { Environment } from '../../types';
+import { Button } from '../ui/button';
 
 interface EnvironmentSelectorProps {
   environments: Environment[];
@@ -24,7 +24,7 @@ function EnvironmentSelector({
         </span>
         <div className="relative flex items-center h-6 min-w-[140px]">
           <select
-            value={activeEnvId || ""}
+            value={activeEnvId || ''}
             onChange={(e) => onActiveEnvChange(e.target.value || null)}
             className="w-full appearance-none bg-transparent pr-5 text-xs font-bold focus:outline-none cursor-pointer text-primary"
           >

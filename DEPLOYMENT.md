@@ -29,6 +29,7 @@ This guide covers building, packaging, and deploying Bakku for production distri
 #### macOS
 
 - **Xcode Command Line Tools**:
+
   ```bash
   xcode-select --install
   ```
@@ -50,12 +51,14 @@ This guide covers building, packaging, and deploying Bakku for production distri
 #### Linux
 
 - **Debian/Ubuntu**:
+
   ```bash
   sudo apt update
   sudo apt install -y libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libayatana-appindicator3-dev librsvg2-dev
   ```
 
 - **Fedora**:
+
   ```bash
   sudo dnf install -y webkit2gtk4.0-devel openssl-devel curl wget file libappindicator-gtk3-devel librsvg2-devel
   ```
@@ -75,6 +78,7 @@ This guide covers building, packaging, and deploying Bakku for production distri
    - Update CHANGELOG.md
 
 2. **Clean Build Artifacts**:
+
    ```bash
    rm -rf dist/
    rm -rf node_modules/
@@ -270,6 +274,7 @@ dpkg-scanpackages binary /dev/null | gzip -9c > binary/Packages.gz
 ### Automated Release Workflow
 
 1. **Create Release Tag**:
+
    ```bash
    git tag -a v0.1.0 -m "Release v0.1.0"
    git push origin v0.1.0
@@ -312,6 +317,7 @@ Follow [Semantic Versioning](https://semver.org/):
 - **PATCH**: Bug fixes (backwards compatible)
 
 Examples:
+
 - `0.1.0` → `0.1.1` (bug fix)
 - `0.1.0` → `0.2.0` (new feature)
 - `0.9.0` → `1.0.0` (major release)
@@ -319,6 +325,7 @@ Examples:
 ### Version Updates
 
 1. **Update package.json**:
+
    ```json
    {
      "version": "0.2.0"
@@ -326,6 +333,7 @@ Examples:
    ```
 
 2. **Update src-tauri/tauri.conf.json**:
+
    ```json
    {
      "version": "0.2.0"
@@ -333,6 +341,7 @@ Examples:
    ```
 
 3. **Create Git Tag**:
+
    ```bash
    git tag -a v0.2.0 -m "Release v0.2.0"
    git push origin v0.2.0
@@ -369,6 +378,7 @@ Examples:
 #### macOS
 
 **Problem**: "codesign failed"
+
 ```
 Solution:
 1. Check your signing certificate is installed
@@ -377,6 +387,7 @@ Solution:
 ```
 
 **Problem**: "notarization failed"
+
 ```
 Solution:
 1. Verify your Apple ID and app-specific password
@@ -387,6 +398,7 @@ Solution:
 #### Windows
 
 **Problem**: "signtool not found"
+
 ```
 Solution:
 1. Install Windows SDK
@@ -395,6 +407,7 @@ Solution:
 ```
 
 **Problem**: "certificate not found"
+
 ```
 Solution:
 1. Verify certificate is installed in certificate store
@@ -405,6 +418,7 @@ Solution:
 #### Linux
 
 **Problem**: "missing dependencies"
+
 ```
 Solution:
 1. Install platform-specific dependencies (see Prerequisites)
@@ -415,6 +429,7 @@ Solution:
 ### Runtime Issues
 
 **Problem**: "Failed to load resources"
+
 ```
 Solution:
 1. Verify frontendDist path in tauri.conf.json
@@ -423,6 +438,7 @@ Solution:
 ```
 
 **Problem**: "Auto-updater not working"
+
 ```
 Solution:
 1. Verify latest.json is accessible
@@ -433,6 +449,7 @@ Solution:
 ### Performance Issues
 
 **Problem**: "App is slow to start"
+
 ```
 Solution:
 1. Check build mode (use --release for production)
@@ -441,6 +458,7 @@ Solution:
 ```
 
 **Problem**: "High memory usage"
+
 ```
 Solution:
 1. Check for memory leaks

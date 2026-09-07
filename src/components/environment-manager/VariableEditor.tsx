@@ -1,6 +1,6 @@
-import { memo } from "react";
-import { Plus, Trash2 } from "lucide-react";
-import { Environment, EnvironmentVariable } from "../../types";
+import { memo } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { Environment, EnvironmentVariable } from '../../types';
 
 interface VariableEditorProps {
   activeEnv: Environment;

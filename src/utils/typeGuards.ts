@@ -1,22 +1,22 @@
-import { SavedRequest, RequestFolder, KVEntry } from "../types";
+import { SavedRequest, RequestFolder, KVEntry } from '../types';
 
 /**
  * Type guard to check if data is a SavedRequest
  */
 export function isSavedRequest(data: unknown): data is SavedRequest {
   return (
-    typeof data === "object" &&
+    typeof data === 'object' &&
     data !== null &&
-    "id" in data &&
-    "name" in data &&
-    "method" in data &&
-    "url" in data &&
-    "headers" in data &&
-    "body" in data &&
-    "auth" in data &&
-    "folderId" in data &&
-    "createdAt" in data &&
-    "updatedAt" in data
+    'id' in data &&
+    'name' in data &&
+    'method' in data &&
+    'url' in data &&
+    'headers' in data &&
+    'body' in data &&
+    'auth' in data &&
+    'folderId' in data &&
+    'createdAt' in data &&
+    'updatedAt' in data
   );
 }
 
@@ -25,12 +25,12 @@ export function isSavedRequest(data: unknown): data is SavedRequest {
  */
 export function isRequestFolder(data: unknown): data is RequestFolder {
   return (
-    typeof data === "object" &&
+    typeof data === 'object' &&
     data !== null &&
-    "id" in data &&
-    "name" in data &&
-    "createdAt" in data &&
-    "updatedAt" in data
+    'id' in data &&
+    'name' in data &&
+    'createdAt' in data &&
+    'updatedAt' in data
   );
 }
 
@@ -39,12 +39,12 @@ export function isRequestFolder(data: unknown): data is RequestFolder {
  */
 export function isKVEntry(data: unknown): data is KVEntry {
   return (
-    typeof data === "object" &&
+    typeof data === 'object' &&
     data !== null &&
-    "id" in data &&
-    "key" in data &&
-    "value" in data &&
-    "enabled" in data
+    'id' in data &&
+    'key' in data &&
+    'value' in data &&
+    'enabled' in data
   );
 }
 
@@ -53,7 +53,7 @@ export function isKVEntry(data: unknown): data is KVEntry {
  */
 export function assertSavedRequest(data: unknown): SavedRequest {
   if (!isSavedRequest(data)) {
-    throw new Error("Data is not a valid SavedRequest");
+    throw new Error('Data is not a valid SavedRequest');
   }
   return data;
 }
@@ -63,7 +63,7 @@ export function assertSavedRequest(data: unknown): SavedRequest {
  */
 export function assertRequestFolder(data: unknown): RequestFolder {
   if (!isRequestFolder(data)) {
-    throw new Error("Data is not a valid RequestFolder");
+    throw new Error('Data is not a valid RequestFolder');
   }
   return data;
 }
@@ -73,7 +73,7 @@ export function assertRequestFolder(data: unknown): RequestFolder {
  */
 export function assertKVEntry(data: unknown): KVEntry {
   if (!isKVEntry(data)) {
-    throw new Error("Data is not a valid KVEntry");
+    throw new Error('Data is not a valid KVEntry');
   }
   return data;
 }

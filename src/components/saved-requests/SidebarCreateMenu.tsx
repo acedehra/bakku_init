@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Plus } from "lucide-react";
+import React, { useEffect } from 'react';
+import { Plus, Terminal } from 'lucide-react';
 
 interface SidebarCreateMenuProps {
   open: boolean;
@@ -7,6 +7,7 @@ interface SidebarCreateMenuProps {
   onClose: () => void;
   onCreateRequest: () => void;
   onCreateFolder: () => void;
+  onOpenCurlImport?: () => void;
 }
 
 export function SidebarCreateMenu({
@@ -15,6 +16,7 @@ export function SidebarCreateMenu({
   onClose,
   onCreateRequest,
   onCreateFolder,
+  onOpenCurlImport,
 }: SidebarCreateMenuProps) {
   const menuRef = React.useRef<HTMLDivElement>(null);
 
@@ -25,13 +27,13 @@ export function SidebarCreateMenu({
       onClose();
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
     return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
     };
   }, [open, onClose]);
 
@@ -61,7 +63,10 @@ export function SidebarCreateMenu({
               onCreateRequest();
             }}
           >
-            <span className="flex w-4 shrink-0 justify-center font-light text-muted-foreground" aria-hidden>
+            <span
+              className="flex w-4 shrink-0 justify-center font-light text-muted-foreground"
+              aria-hidden
+            >
               +
             </span>
             Request
@@ -76,11 +81,31 @@ export function SidebarCreateMenu({
               onCreateFolder();
             }}
           >
-            <span className="flex w-4 shrink-0 justify-center font-light text-muted-foreground" aria-hidden>
+            <span
+              className="flex w-4 shrink-0 justify-center font-light text-muted-foreground"
+              aria-hidden
+            >
               +
             </span>
             Folder
           </button>
+          {onOpenCurlImport && (
+            <>
+              <div className="my-1 h-px bg-border" role="separator" />
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground"
+                onClick={() => {
+                  onClose();
+                  onOpenCurlImport();
+                }}
+              >
+                <Terminal size={14} className="text-primary shrink-0" />
+                Import cURL
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

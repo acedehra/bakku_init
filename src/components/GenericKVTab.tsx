@@ -1,8 +1,8 @@
-import { memo } from "react";
-import { KVEntry, Environment } from "../types";
-import { Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { VariableInput } from "./VariableInput";
+import { memo } from 'react';
+import { KVEntry, Environment } from '../types';
+import { Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { VariableInput } from './VariableInput';
 
 export interface GenericKVTabConfig {
   keyPlaceholder: string;
@@ -19,23 +19,13 @@ interface GenericKVTabProps {
   config: GenericKVTabConfig;
 }
 
-function GenericKVTab({
-  entries,
-  onChange,
-  activeEnv,
-  config,
-}: GenericKVTabProps) {
+function GenericKVTab({ entries, onChange, activeEnv, config }: GenericKVTabProps) {
   const updateEntry = (id: string, updates: Partial<KVEntry>) => {
-    onChange(
-      entries.map((entry) => (entry.id === id ? { ...entry, ...updates } : entry))
-    );
+    onChange(entries.map((entry) => (entry.id === id ? { ...entry, ...updates } : entry)));
   };
 
   const addEntry = () => {
-    onChange([
-      ...entries,
-      { id: crypto.randomUUID(), key: "", value: "", enabled: true },
-    ]);
+    onChange([...entries, { id: crypto.randomUUID(), key: '', value: '', enabled: true }]);
   };
 
   const deleteEntry = (id: string) => {

@@ -1,13 +1,15 @@
-import { memo } from "react";
-import { AppContextValue } from "../../contexts/AppContext";
-import { SavedRequestsSidebar } from "../SavedRequestsSidebar";
-import { RequestPane } from "../RequestPane";
-import { ResponsePane } from "../ResponsePane";
-import { ResizeHandle } from "../ResizeHandle";
-import { EnvironmentManager } from "../EnvironmentManager";
-import { FolderNameDialog } from "../saved-requests/FolderNameDialog";
+import { memo } from 'react';
+import { AppContextValue } from '../../contexts/AppContext';
+import { SavedRequestsSidebar } from '../SavedRequestsSidebar';
+import { RequestPane } from '../RequestPane';
+import { ResponsePane } from '../ResponsePane';
+import { ResizeHandle } from '../ResizeHandle';
+import { EnvironmentManager } from '../EnvironmentManager';
+import { FolderNameDialog } from '../saved-requests/FolderNameDialog';
+import { Settings } from '../Settings';
+import { CurlImportDialog } from '../saved-requests/CurlImportDialog';
 
-interface AppLayoutProps extends AppContextValue {}
+type AppLayoutProps = AppContextValue;
 
 function AppLayout(props: AppLayoutProps) {
   const {
@@ -56,6 +58,15 @@ function AppLayout(props: AppLayoutProps) {
     handleSidebarResize,
     handleResponseResize,
     isEnvManagerOpen,
+    isSettingsOpen,
+    handleOpenSettings,
+    handleCloseSettings,
+    handleSettingsImportSuccess,
+    isCurlImportOpen,
+    handleOpenCurlImport,
+    handleCloseCurlImport,
+    handleLoadCurlIntoCurrent,
+    handleSaveCurlAsNewRequest,
     folderDialogOpen,
     handleConfirmFolderName,
     handleCancelFolderName,
@@ -81,6 +92,8 @@ function AppLayout(props: AppLayoutProps) {
           onRenameRequest={handleRenameRequest}
           onCreateRequestInFolder={handleCreateRequestInFolder}
           onMoveRequestToFolder={handleMoveRequestToFolder}
+          onOpenSettings={handleOpenSettings}
+          onOpenCurlImport={handleOpenCurlImport}
         />
       </div>
       <ResizeHandle onResize={handleSidebarResize} />
@@ -118,6 +131,17 @@ function AppLayout(props: AppLayoutProps) {
           onClose={handleCloseEnvManager}
         />
       )}
+
+      {isSettingsOpen && (
+        <Settings onClose={handleCloseSettings} onImportSuccess={handleSettingsImportSuccess} />
+      )}
+
+      <CurlImportDialog
+        open={isCurlImportOpen}
+        onClose={handleCloseCurlImport}
+        onLoadIntoCurrent={handleLoadCurlIntoCurrent}
+        onSaveAsNew={handleSaveCurlAsNewRequest}
+      />
 
       <FolderNameDialog
         open={folderDialogOpen}

@@ -1,14 +1,15 @@
-import { useState, useCallback } from "react";
-import { HttpMethod, Environment, KVEntry, AuthConfig } from "../types";
-import { VariableInput } from "./VariableInput";
-import { ParamsTab } from "./ParamsTab";
-import { HeadersTab } from "./HeadersTab";
-import { useKeyboardShortcuts } from "./request-pane/useKeyboardShortcuts";
-import RequestTabs, { RequestTab } from "./request-pane/RequestTabs";
-import MethodSelector from "./request-pane/MethodSelector";
-import UrlInput from "./request-pane/UrlInput";
-import EnvironmentSelector from "./request-pane/EnvironmentSelector";
-import AuthTab from "./request-pane/auth/AuthTab";
+import { useState, useCallback } from 'react';
+import { HttpMethod, Environment, KVEntry, AuthConfig } from '../types';
+import { VariableInput } from './VariableInput';
+import { ParamsTab } from './ParamsTab';
+import { HeadersTab } from './HeadersTab';
+import { useKeyboardShortcuts } from './request-pane/useKeyboardShortcuts';
+import RequestTabs, { RequestTab } from './request-pane/RequestTabs';
+import MethodSelector from './request-pane/MethodSelector';
+import UrlInput from './request-pane/UrlInput';
+import EnvironmentSelector from './request-pane/EnvironmentSelector';
+import AuthTab from './request-pane/auth/AuthTab';
+import { ParsedCurl } from '../utils/curlParser';
 
 interface RequestPaneProps {
   method: HttpMethod;
@@ -51,13 +52,13 @@ export function RequestPane({
   onActiveEnvChange,
   onOpenEnvManager,
 }: RequestPaneProps) {
-  const [activeTab, setActiveTab] = useState<RequestTab>("Body");
+  const [activeTab, setActiveTab] = useState<RequestTab>('Body');
 
   const activeEnv = environments.find((e) => e.id === activeEnvId) || null;
-  const canHaveBody = method !== "GET" && method !== "HEAD";
+  const canHaveBody = method !== 'GET' && method !== 'HEAD';
 
-  const paramCount = paramEntries.filter((e) => e.key.trim() !== "" && e.enabled).length;
-  const headerCount = headers.filter((h) => h.key.trim() !== "" && h.enabled).length;
+  const paramCount = paramEntries.filter((e) => e.key.trim() !== '' && e.enabled).length;
+  const headerCount = headers.filter((h) => h.key.trim() !== '' && h.enabled).length;
 
   const { handleSend } = useKeyboardShortcuts({
     method,
@@ -67,10 +68,28 @@ export function RequestPane({
   });
 
   const handleUrlClick = useCallback(() => {
-    if (url.includes("?")) {
-      setActiveTab("Params");
+    if (url.includes('?')) {
+      setActiveTab('Params');
     }
   }, [url]);
+
+  const handleCurlParsed = useCallback(
+    (parsed: ParsedCurl) => {
+      onMethodChange(parsed.method);
+      onUrlChange(parsed.url);
+      if (parsed.headers.length > 0) {
+        onHeadersChange(parsed.headers);
+      }
+      if (parsed.body) {
+        onBodyChange(parsed.body);
+        setActiveTab('Body');
+      }
+      if (parsed.auth.type !== 'None') {
+        onAuthChange(parsed.auth);
+      }
+    },
+    [onMethodChange, onUrlChange, onHeadersChange, onBodyChange, onAuthChange]
+  );
 
   return (
     <div className="flex-1 h-screen flex flex-col bg-background">
@@ -95,6 +114,7 @@ export function RequestPane({
             environment={activeEnv}
             onChange={onUrlChange}
             onClick={handleUrlClick}
+            onCurlParsed={handleCurlParsed}
             className="flex-1"
           />
           <button
@@ -104,7 +124,7 @@ export function RequestPane({
             aria-label="Send request (Ctrl/Cmd + Enter)"
             title="Send request (Ctrl/Cmd + Enter)"
           >
-            {loading ? "Sending..." : "Send"}
+            {loading ? 'Sending...' : 'Send'}
           </button>
         </div>
         <RequestTabs
@@ -115,7 +135,7 @@ export function RequestPane({
         />
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        {activeTab === "Body" && (
+        {activeTab === 'Body' && (
           <div className="space-y-2">
             {canHaveBody ? (
               <VariableInput
@@ -134,21 +154,17 @@ export function RequestPane({
             )}
           </div>
         )}
-        {activeTab === "Params" && (
+        {activeTab === 'Params' && (
           <ParamsTab
             paramEntries={paramEntries}
             onParamEntriesChange={onParamEntriesChange}
             activeEnv={activeEnv}
           />
         )}
-        {activeTab === "Headers" && (
-          <HeadersTab
-            headers={headers}
-            onHeadersChange={onHeadersChange}
-            activeEnv={activeEnv}
-          />
+        {activeTab === 'Headers' && (
+          <HeadersTab headers={headers} onHeadersChange={onHeadersChange} activeEnv={activeEnv} />
         )}
-        {activeTab === "Auth" && (
+        {activeTab === 'Auth' && (
           <AuthTab auth={auth} environment={activeEnv} onChange={onAuthChange} />
         )}
       </div>

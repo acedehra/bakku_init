@@ -5,6 +5,7 @@ A powerful, modern desktop HTTP client built with Tauri and React, designed for 
 ## Features
 
 ### Core Functionality
+
 - **Full HTTP Method Support**: GET, POST, PUT, DELETE, PATCH, HEAD requests
 - **Dynamic Request Builder**: Intuitive interface for building complex HTTP requests
 - **Query Parameters**: Easy management of URL query parameters
@@ -16,6 +17,7 @@ A powerful, modern desktop HTTP client built with Tauri and React, designed for 
   - Custom header-based authentication
 
 ### Advanced Features
+
 - **Environment Management**: Create and manage multiple environments (Development, Staging, Production, etc.)
 - **Variable Substitution**: Use `{{variable}}` syntax to inject environment variables into requests
 - **Request History**: Automatically saved history with ability to replay requests
@@ -24,6 +26,7 @@ A powerful, modern desktop HTTP client built with Tauri and React, designed for 
 - **Dark Mode**: Built-in dark theme for comfortable usage in low-light environments
 
 ### Security & Quality
+
 - **Content Security Policy**: CSP enabled for secure HTTP requests
 - **Input Validation**: Comprehensive validation for URLs, headers, and authentication
 - **Error Handling**: User-friendly error messages with detailed diagnostics

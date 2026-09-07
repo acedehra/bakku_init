@@ -1,5 +1,5 @@
-import { useAppState } from "./hooks/app/useAppState";
-import AppLayout from "./components/app/AppLayout";
+import { useAppState } from './hooks/app/useAppState';
+import AppLayout from './components/app/AppLayout';
 
 function App() {
   const appState = useAppState();
